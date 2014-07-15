@@ -157,7 +157,7 @@ class NP_CustomURL extends NucleusPlugin
 		$plugTable = sql_table('plugin');
 		$myid      = intval($this->getID());
 		$res       = sql_query('SELECT pid, porder FROM ' . $plugTable);
-		while ($p = mysql_fetch_array($res)) {
+		while ($p = sql_fetch_array($res)) {
 			$updateQuery = 'UPDATE %s '
 						 . 'SET    porder = %d '
 						 . 'WHERE  pid    = %d';
@@ -262,7 +262,7 @@ class NP_CustomURL extends NucleusPlugin
 		$TmpQuery    = sprintf($TmpQuery, $id, $bids, $table, $tmpTable, $id);
 		$temp        = sql_query($TmpQuery);
 		if ($temp) {
-			while ($row = mysql_fetch_array($temp)) {
+			while ($row = sql_fetch_array($temp)) {
 				switch ($type) {
 					case 'blog':
 						//set access by BlogshortName/
@@ -316,7 +316,7 @@ class NP_CustomURL extends NucleusPlugin
 			   . 'FROM %s '
 			   . 'WHERE obj_param = "%s"';
 		$temp  = sql_query(sprintf($query, _CUSTOMURL_TABLE, $type));
-		while ($row = mysql_fetch_array($temp)) {
+		while ($row = sql_fetch_array($temp)) {
 			$name = $row['obj_name'];
 			$id   = intval($row['obj_id']);
 			switch ($type) {
@@ -1406,7 +1406,7 @@ class NP_CustomURL extends NucleusPlugin
 							. 'WHERE scatid = %d';
 		$query              = sprintf($query, _C_SUBCAT_TABLE, $subcat_id);
 		$res                = sql_query($query);
-		list($sid, $parent) = mysql_fetch_row($res);
+		list($sid, $parent) = sql_fetch_row($res);
 		if ($parent != 0) {
 			$r = $this->getParents($parent) . '/' . $sid;
 		} else {
@@ -1766,7 +1766,7 @@ class NP_CustomURL extends NucleusPlugin
 		$data[2] = $this->quote_smart($data[2]);
 		$query   = sprintf($query, sql_table($data[0]), $data[1], $data[2]);
 		$res     = sql_query($query);
-		return (mysql_num_rows($res) != 0);
+		return (sql_num_rows($res) != 0);
 	}
 
 	function _genarateObjectLink($data, $scatFlag = '')
@@ -2036,10 +2036,10 @@ class NP_CustomURL extends NucleusPlugin
 		$query    = sprintf($query, sql_table('skin'), $skinID, $pageType);
 		$res      = sql_query($query);
 
-		if (mysql_num_rows($res) == 0) {
+		if (sql_num_rows($res) == 0) {
 			return '';
 		} else {
-			return mysql_result($res, 0, 0);
+			return sql_result($res, 0, 0);
 		}
 	}
 
@@ -2177,7 +2177,7 @@ class NP_CustomURL extends NucleusPlugin
 		$cnmquery = 'SELECT catid FROM %s WHERE cblog = %d';
 		$table    = sql_table('category');
 		$cnm      = sql_query(sprintf($cnmquery, $table, $blogid));
-		while ($c = mysql_fetch_object($cnm)) {
+		while ($c = sql_fetch_object($cnm)) {
 			$catid = intval($c->catid);
 			sql_query(sprintf($pquery, _CUSTOMURL_TABLE, $catid, 'subcategory'));
 			sql_query(sprintf($query, _CUSTOMURL_TABLE, $catid, 'category'));
@@ -2384,7 +2384,7 @@ OUTPUT;
 		$query      = 'SELECT inumber FROM %s WHERE icat = %d';
 		$query      = sprintf($query, sql_table('item'), $cat_id);
 		$items      = sql_query($query);
-		while ($oItem = mysql_fetch_object($items)) {
+		while ($oItem = sql_fetch_object($items)) {
 			$odata = array(
 						   'destblogid' => $destblogid,
 						   'itemid'     => $oItem->inumber
@@ -2449,7 +2449,7 @@ OUTPUT;
 				  . ' AND  obj_param = "%s"'
 				  . ' AND    obj_id != %d';
 		$res = sql_query(sprintf($conf_que, _CUSTOMURL_TABLE, $tempPath, $bid, $oParam, $objID));
-		if ($res && mysql_num_rows($res)) {
+		if ($res && sql_num_rows($res)) {
 			$msg   = array (0, _CONFLICT_ERROR, $name, _CONFLICT_MSG);
 			$path .= '_'.$objID;
 		}
@@ -2457,7 +2457,7 @@ OUTPUT;
 			$conf_cat = 'SELECT obj_id FROM %s WHERE obj_name = "%s"'
 					  . ' AND obj_param = "blog"';
 			$res = sql_query(sprintf($conf_cat, _CUSTOMURL_TABLE, $tempPath));
-			if ($res && mysql_num_rows($res)) {
+			if ($res && sql_num_rows($res)) {
 				$msg   = array (0, _CONFLICT_ERROR, $name, _CONFLICT_MSG);
 				$path .= '_'.$objID;
 			}
@@ -2466,7 +2466,7 @@ OUTPUT;
 			$conf_blg = 'SELECT obj_id FROM %s WHERE obj_name = "%s"'
 					  . ' AND obj_param = "category"';
 			$res = sql_query(sprintf($conf_blg, _CUSTOMURL_TABLE, $tempPath));
-			if ($res && mysql_num_rows($res)) {
+			if ($res && sql_num_rows($res)) {
 				$msg   = array (0, _CONFLICT_ERROR, $name, _CONFLICT_MSG);
 				$path .= '_'.$objID;
 			}
@@ -2476,7 +2476,7 @@ OUTPUT;
 		if ($oParam == 'item' || $oParam == 'member') $newPath .= '.html';
 		$query = 'SELECT * FROM %s WHERE obj_id = %d AND obj_param = "%s"';
 		$res = sql_query(sprintf($query, _CUSTOMURL_TABLE, $objID, $oParam));
-		$row = mysql_fetch_object($res);
+		$row = sql_fetch_object($res);
 		$pathID = $row->id;
 		if ($pathID) {
 			$query = 'UPDATE %s SET obj_name = "%s" WHERE id = %d';
@@ -2518,7 +2518,7 @@ OUTPUT;
 	{
 		if (get_magic_quotes_gpc()) $value = stripslashes($value);
 		if (!is_numeric($value)) {
-			$value = mysql_real_escape_string($value);
+			$value = sql_real_escape_string($value);
 		} elseif (is_numeric($value)) {
 			$value = intval($value);
 		}
