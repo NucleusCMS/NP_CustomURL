@@ -29,6 +29,7 @@ class NP_CustomURL extends NucleusPlugin
 		switch ($what) {
 			case 'SqlTablePrefix':
 			case 'HelpPage':
+			case 'SqlApi':
 				return 1;
 			default:
 				return 0;
