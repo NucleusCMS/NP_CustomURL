@@ -38,7 +38,7 @@ class NP_CustomURL extends NucleusPlugin
 
 	function getVersion()
 	{
-		return '0.3.7FIX4';
+		return '0.3.8';
 	}
 
 	function getDescription()
