@@ -1,0 +1,666 @@
+<style type="text/css">
+tr,td,th {
+	padding:0;
+	margin:0;
+}
+
+h3, h4, h5, h6 {
+	color:#596D9D;
+	background:transparent;
+	font-family:"Lucida Grande", Verdana, Lucida, Helvetica, Arial, sans-serif;
+	font-size:100%;
+	font-weight:bold;
+	margin:0 0 1em 0;
+	padding:0.5em 0 3px 0;
+	border-bottom:1px dotted gray;
+	clear:left;
+}
+
+h3 {font-size:120%; margin-left:10px;width:62%; /*border-bottom:none;*/ }
+h4 {font-size:110%; margin-left:30px; /*border-bottom:none;*/ }
+h5 {font-size:100%; margin-left:50px; /*border-bottom:none;*/ }
+h6 {font-size:100%; margin-left:70px; /*border-bottom:none;*/ }
+
+div.level3 {margin-left:13px;width:62%;}
+div.level4 {margin-left:33px;}
+div.level5 {margin-left:53px;}
+div.level6 {margin-left:73px;}
+
+ul {
+	line-height:1.5em;
+	list-style-type:square;
+	margin:0 0 0.5em 20px;
+	padding:0;
+}
+
+ol {
+	line-height:1.5em;
+	margin:0 0 0.5em 20px;
+	padding:0;
+	color:black;
+	font-weight:bold;
+	list-style-image:none;
+}
+
+/* pre.pre = code blocks by indention */
+/* pre.code = code blocks by code tag */
+/* pre.file = code blocks by file tag */
+pre.code {
+	font-family: 'Lucida Grande', Verdana, Geneva, Lucida, Arial, Helvetica, sans-serif;
+	line-height:140%;
+	font-size:x-small;
+	margin-top:0.5em;
+	margin-bottom:1em;
+	padding:0.5em;
+	border:1px dashed #9BADCA;
+	color:#000;
+	background:#f7f9fa;
+	overflow:auto;
+}
+
+a.returntop {
+	float:right;
+	color:#fff;
+	margin-top:0.5em;
+	margin-right:1em;
+}
+/* inline tables */
+table.inline {
+	background:#FFF;
+	border-spacing:0;
+	border-collapse:collapse;
+}
+
+table.inline th {
+	padding:3px;
+	border-bottom:1px solid gray;
+	background:#f5f5f5;
+	color:#1D5EB3;
+	border: 1px solid #CACACA;
+	text-align: left;
+}
+
+table.inline td {
+	padding:3px;
+	border:1px solid #CACACA;
+}
+
+div.toc {
+	margin-left:2em;
+	margin-top:1.2em;
+	margin-bottom:0;
+	float:right;
+	position:fixed;
+	_position:absolute;
+	right:0.8%;
+	top:36px;
+	width:30%;
+	font-size:90%;
+	clear:both;
+	border-right:1px solid #9E9E9E;
+	border-left:1px solid #E0E0E0;
+	border-bottom:1px solid #CCC;
+	-moz-border-radius: 10px;
+	background:#FFF;
+}
+
+div.tocheader {
+	padding:3px;
+	border-bottom:1px solid #E0E0E0;
+	-moz-border-radius-topright: 10px;
+	-moz-border-radius-topleft: 10px;
+	background:#1D5EB3;
+	text-align:left;
+	font-size:11px;
+	font-weight:bold;
+	margin-bottom:2px;
+	color:#FFF;
+}
+
+#toc__inside {
+	border-bottom:1px solid gray;
+	background:#FFF;
+	text-align:left;
+	-moz-border-radius: 10px;
+	padding-bottom:0.7em;
+}
+
+ul.toc {
+	list-style-type:none;
+	list-style-image:none;
+	line-height:1.2em;
+	margin:0;
+	padding:0 0 0 1em;
+}
+
+ul.toc li {
+	padding-left:0.4em;
+}
+
+a.toc {
+	color:#104C89;
+	text-decoration:none;
+}
+
+a.toc:hover {
+	color:#3085E4;
+	text-decoration:underline;
+}
+
+/* GeSHi (c) Nigel McNie 2004 (http://qbnz.com/highlighter) */
+.php .de1, .php .de2, .nucleus {color: #000060;font-weight: normal;}
+.php a:link {color: #006;}
+.php a:hover {background-color: #d6d6e6;}
+.php .kw1 {color: #b1b100;}
+.php .kw2 {color: #000000; font-weight: bold;}
+.php .co1 {color: #808080; font-style: italic;font-style: normal;}
+.php .br0 {color: #66cc66;}
+.php .st0 {color: #ff0000;}
+.php .nu0 {color: #cc66cc;}
+.php .me1 {color: #006600;}
+.php .re0 {color: #0000ff;}
+.apache .imp {font-weight: bold; color: red;}
+.apache .kw1 {color: #00007f;}
+.apache .kw2 {color: #0000ff;}
+.apache .br0 {color: #66cc66;}
+.apache .st0 {color: #7f007f;}
+.nucleus .kw1 {color: #0000ff;}/**/
+.nucleus .kw2 {color: #000000; font-weight: bold;}/**/
+.nucleus .br0 {color: #66cc66;}/**/
+.nucleus .re0 {color: #ff0000;}/**/
+.html .de {color: #000060; font-weight: normal;}
+.html a:link {color: #006;}
+.html a:hover {background-color: #d6d6e6;}
+.html .kw1 {color: #b1b100;}
+.html .kw2 {color: #000000; font-weight: bold;}
+.html .kw3 {color: #000066;}
+.html .sc {color: #009900;}
+</style>
+<div>
+	<a id="pagetop"></a>
+	<div class="toc">
+		<a href="#pagetop" class="returntop">Return Pagetop</a>
+		<div class="tocheader toctoggle" id="tocheader">Table of Contents</div>
+		<div id="tocinside">
+			<ul class="level2">
+			<li class="level2"><a href="#install" class="toc">Installing</a>
+				<ul class="level3">
+				<li class="level3"><a href="#cpi_server" class="toc">Tips for CPI's SERVER</a></li>
+				</ul>
+			</li>
+			<li class="level2"><a href="#usage" class="toc">How to use the plugin</a>
+				<ul class="level3">
+				<li class="level3"><a href="#defaultname" class="toc">Virtual file/directory-name defaults</a></li>
+				<li class="level3"><a href="#rss_atom" class="toc">URL of RSS/ATOM</a></li>
+				</ul>
+			</li>
+			<li class="level2"><a href="#skin_template" class="toc">Available SkinVars and/or TemplateVars</a>
+				<ul class="level3">
+				<li class="level3"><a href="#output" class="toc">Output Link URL</a></li>
+				<li class="level3"><a href="#trackbackurl" class="toc">Output TrackBack URL</a></li>
+				<li class="level3"><a href="#entry" class="toc">Description into a Item</a></li>
+				</ul>
+			</li>
+			<li class="level2"><a href="#option" class="toc">Options</a>
+				<ul class="level3">
+				<li class="level3"><a href="#globaloption" class="toc">Global Options</a></li>
+				<li class="level3"><a href="#blogoption" class="toc">Blog Options</a></li>
+				<li class="level3"><a href="#catoption" class="toc">Category Options</a></li>
+				<li class="level3"><a href="#memberoption" class="toc">Member Options</a></li>
+				</ul>
+			</li>
+			<li class="level2"><a href="#tipstrick" class="toc">Tips and Tricks</a>
+				<ul class="level3">
+				<li class="level3"><a href="#change_feeds" class="toc">Change RSS/ATOM-skin virtual filename when you need.</a></li>
+				<li class="level3"><a href="#otherplugin" class="toc">For corresponding to other Plugins</a>
+					<ul class="level4">
+						<li class="level4"><a href="#np_analyze" class="toc">NP_Analyze</a></li>
+						<li class="level4"><a href="#np_contentlist" class="toc">NP_ContentList</a></li>
+						<li class="level4"><a href="#np_tagex" class="toc">NP_TagEX</a></li>
+						<li class="level4"><a href="#np_trackback" class="toc">NP_TrackBack</a>
+							<ul class="level5">
+								<li class="level5"><a href="#customtb" class="toc">[.trackback]</a></li>
+							</ul>
+						</li>
+					</ul>
+				</li>
+				</ul>
+			</li>
+			<li class="level2"><a href="#history" class="toc">Change log</a></li></ul>
+		</div>
+	</div>
+	<h3><a name="install" id="install">Installing</a></h3>
+	<div class="level3">
+		<ol>
+			<li class="level1">Unzip the file and upload the contents to your plugin directory</li>
+			<li class="level1">Enable 'Fancy URLs' in the Nucleus admin area (nucleus management / edit settings)</li>
+			<li class="level1">Create a file called .htaccess (leading dot!) with the following contents
+<pre class="code apache"><span class="kw1">RewriteEngine</span> <span class="kw2">on</span>
+<span class="kw1">RewriteCond</span> %<span class="br0">&#123;</span>REQUEST_FILENAME<span class="br0">&#125;</span> !-f
+<span class="kw1">RewriteCond</span> %<span class="br0">&#123;</span>REQUEST_FILENAME<span class="br0">&#125;</span> !-d
+<span class="kw1">RewriteRule</span> ^<span class="br0">&#40;</span>.*<span class="br0">&#41;</span>$ index.php?virtualpath=$<span class="nu0">1</span> <span class="br0">&#91;</span>L,QSA<span class="br0">&#93;</span></pre>
+			</li>
+			<li class="level1">Edit index.php the following contents
+<pre class="code php"><span class="kw2">&lt;?</span>
+<span class="re0">$CONF</span> = <a href="http://www.php.net/array"><span class="kw3">array</span></a><span class="br0">&#40;</span><span class="br0">&#41;</span>;
+<span class="re0">$CONF</span><span class="br0">&#91;</span><span class="st0">'Self'</span><span class="br0">&#93;</span> = <span class="st0">''</span>;
+
+<span class="kw1">include</span><span class="br0">&#40;</span><span class="st0">'./config.php'</span><span class="br0">&#41;</span>;
+
+selector<span class="br0">&#40;</span><span class="br0">&#41;</span>;
+
+<span class="kw2">?&gt;</span></pre>
+			</li>
+			<li class="level1">Install the plugin from the plugin admin menu</li>
+		</ol>
+
+		<h4><a name="cpi_server" id="cpi_server">Tips for CPI's SERVER</a></h4>
+		<div class="level4">
+			Add this code your .htaccess befor RewriteEngine on when use CPI's SERVER
+			<pre class="code apache"><span class="kw1">Options</span> +<span class="kw2">FollowSymLinks</span></pre>
+			Thank you for information Mr. BUROGE.
+		</div>
+	</div>
+	<h3><a name="usage" id="usage">How to use the plugin</a></h3>
+	<div class="level3">
+		<p>
+		各ブログ・カテゴリ・アイテム等の URL をカスタマイズし、通常サイトと同じ様なディレクトリ階層の URL を提供します<br />
+		  Customize of each URL is performed on the management screen of Plugin, or the setting screen of each Blog Category Item.<br />
+		  subcategory of NP_MultipleCategories is supported (infinite class correspondence).<br />
+		ブログ、アイテム、カテゴリ、メンバーの各個別の仮想ディレクトリ・ファイル名は、それぞれの編集画面、及びプラグインの管理画面(インストールしたままの状態だと左端の『クイックリンク』に管理画面へのリンクが表示されます)から変更する事が出来ます サブカテゴリの仮想ディレクトリ名は、プラグインの管理画面からのみの変更になります
+		</p>
+		<h4><a name="defaultname" id="defaultname">Virtual file/directory-name defaults</a></h4>
+		<div class="level4">
+			<table class="inline">
+				<tr><th>Virtual Blog directory name</th><td>Blog shortname</td></tr>
+				<tr><th>Virtual Category directory name</th><td>Prefix &lsquo;category_&rsquo; and catid</td></tr>
+				<tr><th>Virtual Subcategory directory name</th><td>Prefix &lsquo;subcategory_&rsquo; and subcatid</td></tr>
+				<tr><th>Virtual file name of Member</th><td>&lsquo;login-name&rsquo;.html</td></tr>
+				<tr><th>Virtual Archive list directory name</th><td>archives</td></tr>
+				<tr><th>Virtual Archive directory name</th><td>archive</td></tr>
+				<tr><th>Virtual file name of Item</th><td>Prefix &lsquo;item_&rsquo; and &lsquo;itemid&rsquo;.html</td></tr>
+			</table>
+			You can modified default prefix and directory-name on plugin admin menu.
+		</div>
+		<h4><a name="rss_atom" id="rss_atom">URL of RSS/ATOM</a></h4>
+		<div class="level4">
+			Link to RSS/ATOM is usualy(&lsquo;blogsetting&rsquo; Not but, please be sure to write as &lsquo;sitevar&rsquo;)
+			<pre class="code nucleus"><span class="kw2">&lt;%</span><span class="kw1">sitevar</span><span class="br0">&#40;</span><span class="re0">url</span><span class="br0">&#41;</span><span class="kw2">%&gt;</span>xml-rss2.php?blogid=n</pre>
+			or you can write
+			<pre class="code nucleus"><span class="kw2">&lt;%</span><span class="kw1">blogsetting</span><span class="br0">&#40;</span><span class="re0">url</span><span class="br0">&#41;</span><span class="kw2">%&gt;</span>rss2.xml</pre>
+			to the appearance which is a fixed file.(In this case, &lsquo;blogsetting&rsquo;, &lsquo;sitevar&rsquo;, or either is good)
+			The virtual file name of each feed is as follows.
+			<table class="inline">
+				<tr><th>RSS 1.0</th><td>index.rdf or rss1.xml</td></tr>
+				<tr><th>RSS 2.0</th><td>rss2.xml</td></tr>
+				<tr><th>ATOM</th><td>atom.xml</td></tr>
+			</table>
+			Please accompany the upper correspondence and describe.
+		</div>
+	</div>
+
+	<h3><a name="skin_template" id="skin_template">Available SkinVars and/or TemplateVars</a></h3>
+	<div class="level3">
+		<h4><a name="output" id="output">Output Link URL</a></h4>
+		<div class="level4">
+		<pre class="code nucleus"><span class="kw2">&lt;%</span><span class="kw1">CustomURL</span><span class="br0">&#40;</span><span class="re0">i/12/i</span>,&nbsp;<span class="re0">LinkTest</span>,&nbsp;<span class="re0">LinkTitle</span><span class="br0">&#41;</span><span class="kw2">%&gt;</span></pre>
+		<ul>
+			<li class="level1">1st parameter(i/12/i)<br />
+			 &lsquo;/&rsquo; divides and describes the classification, id, id or virtual file/directory-name.<br />
+			 In specification of only the 1st parameter, an output turns into an output of only URL instead of the form of &lt;a href=""&gt;.
+			<ul>
+				<li class="level2">When only a number is written, it is processed as blogid.</li>
+				<li class="level2">When the 3rd is omitted, the 2nd is processed as ID.</li>
+				<li class="level2">It is only id which can be used for the link to an item.</li>
+				<li class="level2">Only when an item is specified, [path] can be specified as the 3rd.<br />
+				   When [path] is specified, the virtual file name (item_123.html) attached to the specified item is outputted.</li>
+			</ul>
+			</li>
+			<li class="level1">2nd parameter(LinkText)<br />
+			 リンクを張るテキストを指定します(省略可能)</li>
+			<li class="level1">3rd parameter(LinkTitle)<br />
+			 &lt;a&gt; タグの title 属性を指定します<br />
+			 LinkText が指定されている時にこのパラメータが省略された場合は title 属性に LinkText が指定されます</li>
+		</ul>
+		When all the parameters are omitted, URL of current Blog is outputted.
+			<h5><a name="shiyourei" id="shiyourei">example</a></h5>
+			<div class="level5">
+				<ul>
+					<li class="level1">When permalink of an item is displayed on a template.
+						<ul>
+							<li class="level2">Description &gt; <span class="nucleus"><span class="kw2">&lt;%</span><span class="kw1">CustomURL</span><span class="br0">&#40;</span>,<span class="re0">permalink</span><span class="br0">&#41;</span><span class="kw2">%&gt;</span></span></li>
+							<li class="level2">Output &gt; <span class="html de"><span class="sc"><a href="http://december.com/html/4/element/a.html"><span class="kw2">&lt;a</span></a>&nbsp;<span class="kw3">href</span>=&rdquo;URL of Item&rdquo;&nbsp;<span class="kw3">title</span>=&rdquo;permalink&rdquo;</span><span class="kw2">&gt;</span>permalink<span class="kw2">&lt;/a&gt;</span></span></span></li>
+						</ul>
+					</li>
+					<li class="level1">When the link to a &lsquo;diary&rsquo; category (virtual directory name: Nikki) is displayed on a skin fixed.
+						<ul>
+							<li class="level2">Description &gt; <span class="nucleus"><span class="kw2">&lt;%</span><span class="kw1">CustomURL</span><span class="br0">&#40;</span><span class="re0">c/Nikki/n</span>,&nbsp;<span class="re0">diary</span>,&nbsp;<span class="re0">Main contents</span><span class="br0">&#41;</span><span class="kw2">%&gt;</span></span></li>
+							<li class="level2">Output &gt; <span class="html de"><span class="sc"><a href="http://december.com/html/4/element/a.html"><span class="kw2">&lt;a</span></a>&nbsp;<span class="kw3">href</span>=&rdquo;URL of diary category&rdquo;&nbsp;<span class="kw3">title</span>=&rdquo;Main contents&rdquo;</span><span class="kw2">&gt;</span>diary<span class="sc2"><span class="kw2">&lt;/a&gt;</span></span></span></li>
+						</ul>
+					</li>
+				</ul>
+			</div>
+		</div>
+		<h4><a name="trackbackurl" id="trackbackurl">Output TrackBack URL</a></h4>
+		<div class="level4">
+			<pre class="code nucleus"><span class="kw2">&lt;%</span><span class="kw1">CustomURL</span><span class="br0">&#40;</span><span class="re0">trackback</span><span class="br0">&#41;</span><span class="kw2">%&gt;</span></pre>
+			 The track back URL for NP_TrackBack is outputted.<br />
+			 Default is
+			<pre class="code">http://example.com/trackback/item_123.html</pre>
+			you can change to <pre class="code">http://example.com/item_123.trackback</pre>
+			is possible <a href="#customtb" title=".trackback">by converting</a>.
+		</div>
+		<h4><a name="entry" id="entry">Description into a Item</a></h4>
+		<div class="level4">
+			<pre class="code nucleus"><span class="kw2">&lt;%</span><span class="kw1">CustomURL</span><span class="br0">&#40;</span><span class="re0">i/12/i</span>,&nbsp;<span class="re0">LinkTest</span>,&nbsp;<span class="re0">LinkTitle</span><span class="br0">&#41;</span><span class="kw2">%&gt;</span></pre>
+			<ul>
+				<li class="level1">1st parameter(i/12/i)<br />
+				 &lsquo;/&rsquo; divides and describes the classification, id, id or virtual file/directory-name.<br />
+				 In specification of only the 1st parameter, an output turns into an output of only URL instead of the form of &lt;a href=""&gt;.
+				<ul>
+					<li class="level2">When only a number is written, it is processed as blogid.</li>
+					<li class="level2">When the 3rd is omitted, the 2nd is processed as ID.</li>
+					<li class="level2">It is only id which can be used for the link to an item.</li>
+				</ul>
+				</li>
+				<li class="level1">2nd parameter(LinkText)<br />
+				 リンクを張るテキストを指定します(省略可能)</li>
+				<li class="level1">3rd parameter(LinkTitle)<br />
+				 &lt;a&gt; タグの title 属性を指定します<br />
+				 LinkText が指定されている時にこのパラメータが省略された場合は title 属性に LinkText が指定されます</li>
+			</ul>
+			When all the parameters are omitted, URL of current Item is outputted.
+		</div>
+	</div>
+	<h3><a name="option" id="option">Option</a></h3>
+	<div class="level3">
+		<h4><a name="globaloption" id="globaloption">Global Option</a></h4>
+		<div class="level4">
+			<ul>
+				<li class="level1">アーカイブディレクトリへの Path の名前<br />
+				 仮想アーカイブディレクトリの名前</li>
+				<li class="level1">アーカイブリストディレクトリへの Path の名前<br />
+				 仮想アーカイブリストディレクトリの名前</li>
+				<li class="level1">メンバーディレクトリへの Path の名前<br />
+				 仮想メンバーディレクトリの名前</li>
+				<li class="level1">新規作成時のアイテムのURIの接頭語<br />
+				 アイテムのリンク名にデフォルトで付く文字列<br />
+				 <span class="nucleus"><span class="kw2">&lt;%</span><span class="kw1">year</span><span class="kw2">%&gt;</span></span>、<span class="nucleus"><span class="kw2">&lt;%</span><span class="kw1">month</span><span class="kw2">%&gt;</span></span>、<span class="nucleus"><span class="kw2">&lt;%</span><span class="kw1">day</span><span class="kw2">%&gt;</span></span>を使用して、投稿された年月日を使用することが出来ます</li>
+				<li class="level1">新規作成時のカテゴリーのURIの接頭語<br />
+				 カテゴリーのリンク名にデフォルトで付く文字列</li>
+				<li class="level1">新規作成時のサブカテゴリーのURIの接頭語<br />
+				 サブカテゴリーのリンク名にデフォルトで付く文字列</li>
+				<li class="level1">アンインストールするときにテーブルを削除しますか？<br />
+				 アンインストール時に CustomURL が使用しているデータベーステーブルを削除するかどうか</li>
+				<li class="level1">クイックメニューにショートカットを追加しますか？<br />
+				 クイックメニューに CustomURL の管理画面へのリンクを追加するかどうか</li>
+				<li class="level1">URI に該当するデータが存在しなかった場合の挙動<br />
+				 受け取った URL に対応するデータが存在しなかった時の挙動
+					<ul>
+						<li class="level2">404 Not Found<br />
+						 404レスポンスヘッダを返し、エラーページを表示</li>
+						<li class="level2">303 See Other<br />
+						 303レスポンスヘッダを返し、直近のディレクトリを表示</li>
+					</ul>
+				</li>
+			</ul>
+		</div>
+		<h4><a name="blogoption" id="blogoption">Blog Option</a></h4>
+		<div class="level4">
+			<ul>
+				<li class="level1">このブログで URI の別名を使用する<br />
+				 CustomURL を使用した URL を出力するかどうかの設定<br />
+				 ここを｢いいえ｣にした場合でも、CustonURL でのアクセスは受け付けます(CustomURL の仕様をやめて通常の URL で運用する場合の移行用)</li>
+				<li class="level1"><div class="li"> ノーマルの URL でアクセスがあった時にリダイレクトしますか？<br />
+				 ノーマル URL(index.php?itemid=123) でアクセスがあった場合にリダイレクトさせるかどうか</li>
+				<li class="level1">検索の時の URL を 「/search/検索語」にリダイレクトしますか？<br />
+				 index.php?query=検索語 の URL をリダイレクトするかどうか</li>
+				<li class="level1">このブログのリクエスト URI<br />
+				 ブログにアクセスする為のブログ仮想ブログディレクトリの名前</li>
+			</ul>
+		</div>
+		<h4><a name="catoption" id="catoption">Category Option</a></h4>
+		<div class="level4">
+			<ul>
+				<li class="level1">このカテゴリーのリクエスト URI<br />
+				 カテゴリーにアクセスする為のブログ仮想カテゴリーディレクトリの名前</li>
+			</ul>
+		</div>
+		<h4><a name="memberoption" id="memberoption">Member Option</a></h4>
+		<div class="level4">
+			<ul>
+				<li class="level1">このメンバーのリクエスト URI<br />
+				 メンバーページの仮想ファイル名(拡張子(.html)自動付加)</li>
+			</ul>
+		</div>
+	</div>
+
+	<h3><a name="tipstrick" id="tipstrick">Tips and Tricks</a></h3>
+	<div class="level3">
+		<h4><a name="change_feeds" id="change_feeds">feed のファイル名やスキン名を変更したい時</a></h4>
+		<div class="level4">
+		拡張子の変更はなしです あくまでもファイル名のみです(拡張子は .xml でお願いします) NP_CustomURL.php の1322行目からが、contentType ヘッダの送出部分になります ここの
+		<pre class="code php">				<span class="kw1">case</span> <span class="st0">'rss1.xml'</span>:
+				<span class="kw1">case</span> <span class="st0">'index.rdf'</span>:
+				<span class="kw1">case</span> <span class="st0">'rss2.xml'</span>:
+				<span class="kw1">case</span> <span class="st0">'atom.xml'</span>:</pre>
+		
+		 の部分に変更したいファイル名を書き換えます 次にその下の
+		<pre class="code php">			<span class="kw1">switch</span> <span class="br0">&#40;</span><a href="http://www.php.net/end"><span class="kw3">end</span></a><span class="br0">&#40;</span><span class="re0">$path_arr</span><span class="br0">&#41;</span><span class="br0">&#41;</span> <span class="br0">&#123;</span>
+				<span class="kw1">case</span> <span class="st0">'rss1.xml'</span>:
+				<span class="kw1">case</span> <span class="st0">'index.rdf'</span>:
+					<span class="re0">$skinName</span> = <span class="st0">'feeds/rss10'</span>;
+					<span class="kw1">break</span>;
+				<span class="kw1">case</span> <span class="st0">'rss2.xml'</span>:
+					<span class="re0">$skinName</span> = <span class="st0">'feeds/rss20'</span>;
+					<span class="kw1">break</span>;
+				<span class="kw1">case</span> <span class="st0">'atom.xml'</span>:
+					<span class="re0">$skinName</span> = <span class="st0">'feeds/atom'</span>;
+					<span class="kw1">break</span>;
+			<span class="br0">&#125;</span></pre>
+		 の部分も、上で書き換えたものに対応させる形で書き換えます スキン名を変更する場合はこの部分を書き換えてください
+		これ変える人あまり居ないと思ったんで決め打ちにしちゃってます
+		</div>
+		<h4><a name="otherplugin" id="otherplugin">他プラグインへの対応</a></h4>
+		<div class="level4">
+			<h5><a name="np_analyze" id="np_analyze">NP_Analyze</a></h5>
+			<div class="level5">
+				そのままだと｢アクセスページ｣部分のリンクが正常に出力されませんので以下の改造をします NP_Analyze(v0.533)の1256行目付近 
+<pre class="code php">	<span class="kw2">function</span> IdChange<span class="br0">&#40;</span><span class="re0">$select</span> = <span class="st0">''</span>, <span class="re0">$id</span> = <span class="st0">''</span>, <span class="re0">$other</span> = <span class="st0">''</span>, <span class="re0">$past</span> = <span class="st0">''</span>, <span class="re0">$c</span> = <span class="st0">''</span>, <span class="re0">$que</span> = <span class="st0">''</span>, <span class="re0">$hd</span> = <span class="st0">''</span><span class="br0">&#41;</span> <span class="br0">&#123;</span>
+		<a href="http://www.php.net/global"><span class="kw3">global</span></a> <span class="re0">$CONF</span>, <span class="re0">$member</span>;</pre>
+				 を
+<pre class="code php">	<span class="kw2">function</span> IdChange<span class="br0">&#40;</span><span class="re0">$select</span> = <span class="st0">''</span>, <span class="re0">$id</span> = <span class="st0">''</span>, <span class="re0">$other</span> = <span class="st0">''</span>, <span class="re0">$past</span> = <span class="st0">''</span>, <span class="re0">$c</span> = <span class="st0">''</span>, <span class="re0">$que</span> = <span class="st0">''</span>, <span class="re0">$hd</span> = <span class="st0">''</span><span class="br0">&#41;</span> <span class="br0">&#123;</span>
+		<a href="http://www.php.net/global"><span class="kw3">global</span></a> <span class="re0">$CONF</span>, <span class="re0">$member</span>, <span class="re0">$manager</span>;</pre>
+				 に、その下1260行目付近
+<pre class="code php">		<span class="kw1">switch</span><span class="br0">&#40;</span><span class="kw2">TRUE</span><span class="br0">&#41;</span> <span class="br0">&#123;</span>
+		<span class="kw1">case</span> <span class="br0">&#40;</span><span class="re0">$past</span> == <span class="st0">'+'</span><span class="br0">&#41;</span>:</pre>
+				 を
+<pre class="code php">		<span class="kw1">switch</span><span class="br0">&#40;</span><span class="kw2">TRUE</span><span class="br0">&#41;</span> <span class="br0">&#123;</span>
+		<span class="kw1">case</span> <span class="br0">&#40;</span><span class="re0">$manager</span>-&gt;<span class="me1">pluginInstalled</span><span class="br0">&#40;</span><span class="st0">'NP_CustomURL'</span><span class="br0">&#41;</span><span class="br0">&#41;</span>:
+		<span class="kw1">case</span> <span class="br0">&#40;</span><span class="re0">$past</span> == <span class="st0">'+'</span><span class="br0">&#41;</span>:</pre>
+				 に変更することで、正常に URL が出力されます
+			</div>
+			<h5><a name="np_contentlist" id="np_contentlist">NP_ContentList</a></h5>
+			<div class="level5">
+				こちらも URL 出力を正常にする変更<br />
+				 このプラグインは、独自に URL を生成しているので、ここをグローバルファンクションを使用するように書き換えます<br />
+				 「function doSkinVar()」内の467行目からの
+<pre class="code php"><span class="co1">// sub category --- </span></pre>
+				で括られているブロックの486行目
+<pre class="code php"><span class="re0">$subdata</span><span class="br0">&#91;</span><span class="st0">'sublink'</span><span class="br0">&#93;</span> = addLinkParams<span class="br0">&#40;</span><span class="re0">$catdata</span><span class="br0">&#91;</span><span class="st0">'catlink'</span><span class="br0">&#93;</span>, <a href="http://www.php.net/array"><span class="kw3">array</span></a><span class="br0">&#40;</span><span class="re0">$subrequest</span> =&gt; <span class="re0">$subdata</span><span class="br0">&#91;</span><span class="st0">'subcatid'</span><span class="br0">&#93;</span><span class="br0">&#41;</span><span class="br0">&#41;</span>;</pre>
+				 と書いてある次の行に
+<pre class="code php"><span class="kw1">if</span> <span class="br0">&#40;</span><span class="re0">$CONF</span><span class="br0">&#91;</span><span class="st0">'URLMode'</span><span class="br0">&#93;</span> == <span class="st0">'pathinfo'</span> &amp;&amp; <span class="re0">$manager</span>-&gt;<span class="me1">pluginInstalled</span><span class="br0">&#40;</span><span class="st0">'NP_CustomURL'</span><span class="br0">&#41;</span><span class="br0">&#41;</span> <span class="br0">&#123;</span>
+	<span class="re0">$customurls</span> = <span class="re0">$manager</span>-&gt;<span class="me1">getPlugin</span><span class="br0">&#40;</span><span class="st0">'NP_CustomURL'</span><span class="br0">&#41;</span>;
+	<span class="re0">$subdata</span><span class="br0">&#91;</span><span class="st0">'sublink'</span><span class="br0">&#93;</span> = <span class="re0">$customurls</span>-&gt;_addLinkParams<span class="br0">&#40;</span><span class="re0">$catdata</span><span class="br0">&#91;</span><span class="st0">'catlink'</span><span class="br0">&#93;</span>, <a href="http://www.php.net/array"><span class="kw3">array</span></a><span class="br0">&#40;</span><span class="re0">$subrequest</span> =&gt; <span class="re0">$subdata</span><span class="br0">&#91;</span><span class="st0">'subcatid'</span><span class="br0">&#93;</span><span class="br0">&#41;</span><span class="br0">&#41;</span>;
+<span class="br0">&#125;</span></pre>
+				 と挿入、396行目から465行目までの
+<pre class="code php"><span class="co1">// Categories -------------------- </span></pre>
+				ブロックの終了後、466行目に
+<pre class="code php"><span class="kw1">if</span> <span class="br0">&#40;</span><span class="re0">$CONF</span><span class="br0">&#91;</span><span class="st0">'URLMode'</span><span class="br0">&#93;</span> == <span class="st0">'pathinfo'</span> &amp;&amp; <span class="re0">$manager</span>-&gt;<span class="me1">pluginInstalled</span><span class="br0">&#40;</span><span class="st0">'NP_CustomURL'</span><span class="br0">&#41;</span><span class="br0">&#41;</span> <span class="br0">&#123;</span>
+	<span class="re0">$catdata</span><span class="br0">&#91;</span><span class="st0">'catlink'</span><span class="br0">&#93;</span> = createCategoryLink<span class="br0">&#40;</span><span class="re0">$catdata</span><span class="br0">&#91;</span><span class="st0">'catid'</span><span class="br0">&#93;</span><span class="br0">&#41;</span>;
+<span class="br0">&#125;</span></pre>
+				 最後に348行目の
+<pre class="code php"><span class="re0">$data</span><span class="br0">&#91;</span><span class="st0">'self'</span><span class="br0">&#93;</span> = <span class="re0">$data</span><span class="br0">&#91;</span><span class="st0">'blogurl'</span><span class="br0">&#93;</span>;</pre>
+				 の前の行に
+<pre class="code php"><span class="kw1">if</span> <span class="br0">&#40;</span><span class="re0">$CONF</span><span class="br0">&#91;</span><span class="st0">'URLMode'</span><span class="br0">&#93;</span> == <span class="st0">'pathinfo'</span> &amp;&amp; <span class="re0">$manager</span>-&gt;<span class="me1">pluginInstalled</span><span class="br0">&#40;</span><span class="st0">'NP_CustomURL'</span><span class="br0">&#41;</span><span class="br0">&#41;</span> <span class="br0">&#123;</span>
+	<span class="re0">$data</span><span class="br0">&#91;</span><span class="st0">'blogurl'</span><span class="br0">&#93;</span> = createBlogidLink<span class="br0">&#40;</span><span class="re0">$data</span><span class="br0">&#91;</span><span class="st0">'blogid'</span><span class="br0">&#93;</span><span class="br0">&#41;</span>;
+<span class="br0">&#125;</span></pre>
+ を追加すれば完了です (行番号はバージョン2.0のものになります) 
+			</div>
+			<h5><a name="np_tagex" id="np_tagex">NP_TagEX</a></h5>
+			<div class="level5">
+				そのままだと URL の真ん中にタグのリンクが入ったりしてややこしいんで、必ず最後に来るように URL 生成部分を変更 一番最後のファンクション 
+<pre class="code php">creatTagLink<span class="br0">&#40;</span><span class="br0">&#41;</span></pre>
+ 				の最後の
+<pre class="code php"><span class="kw1">return</span> addLinkParams<span class="br0">&#40;</span><span class="re0">$link</span>, <span class="re0">$linkparams</span><span class="br0">&#41;</span>;</pre>
+				の直前に、次のコードを挿入します
+<pre class="code php"><a href="http://www.php.net/global"><span class="kw3">global</span></a> <span class="re0">$manager</span>;
+<span class="kw1">if</span> <span class="br0">&#40;</span><span class="re0">$manager</span>-&gt;<span class="me1">pluginInstalled</span><span class="br0">&#40;</span><span class="st0">'NP_CustomURL'</span><span class="br0">&#41;</span><span class="br0">&#41;</span> <span class="br0">&#123;</span>
+    <span class="re0">$customurls</span> = <span class="re0">$manager</span>-&gt;<span class="me1">getPlugin</span><span class="br0">&#40;</span><span class="st0">'NP_CustomURL'</span><span class="br0">&#41;</span>;
+    <span class="re0">$link</span> = <span class="st0">'tag/'</span> . <span class="re0">$ready</span> . <span class="re0">$sep</span> . <span class="re0">$this</span>-&gt;_rawencode<span class="br0">&#40;</span><span class="re0">$tag</span><span class="br0">&#41;</span>;
+    <span class="kw1">return</span> <span class="re0">$CONF</span><span class="br0">&#91;</span><span class="st0">'BlogURL'</span><span class="br0">&#93;</span> . <span class="st0">'/'</span> . <span class="re0">$customurls</span>-&gt;_addLinkParams<span class="br0">&#40;</span><span class="re0">$link</span>, <span class="re0">$linkparams</span><span class="br0">&#41;</span> . <span class="st0">'/'</span>;
+<span class="br0">&#125;</span></pre>
+				これでタグがURLの一番最後になります
+			</div>
+			<h5><a name="np_trackback" id="np_trackback">NP_TrackBack</a></h5>
+			<div class="level5">
+				外部からのトラックバックはむ改造で対応してますが、このままだとローカルトラックバックが打てないので改造します 2479行目あたりからの 
+<pre class="code php">	<span class="kw2">function</span> handleLocalPing<span class="br0">&#40;</span><span class="re0">$itemid</span>, <span class="re0">$title</span>, <span class="re0">$excerpt</span>, <span class="re0">$blog_name</span>, <span class="re0">$ping_url</span><span class="br0">&#41;</span><span class="br0">&#123;</span>
+		<a href="http://www.php.net/global"><span class="kw3">global</span></a> <span class="re0">$manager</span>;</pre>
+				のブロックの 
+<pre class="code php">		<span class="br0">&#125;</span> <span class="kw1">elseif</span> <span class="br0">&#40;</span> <a href="http://www.php.net/preg_match"><span class="kw3">preg_match</span></a><span class="br0">&#40;</span><span class="st0">"/itemid=([0-9]+)/"</span>,<span class="re0">$ping_url</span>,<span class="re0">$idnum</span><span class="br0">&#41;</span> <span class="br0">&#41;</span><span class="br0">&#123;</span>
+			<span class="re0">$tb_id</span> = <a href="http://www.php.net/intval"><span class="kw3">intval</span></a><span class="br0">&#40;</span><span class="re0">$idnum</span><span class="br0">&#91;</span><span class="nu0">1</span><span class="br0">&#93;</span><span class="br0">&#41;</span>;
+		<span class="br0">&#125;</span></pre>
+				と
+<pre class="code php">		<span class="kw1">if</span> <span class="br0">&#40;</span><span class="br0">&#40;</span>!<span class="re0">$manager</span>-&gt;<span class="me1">existsItem</span><span class="br0">&#40;</span><span class="re0">$tb_id</span>,<span class="nu0">0</span>,<span class="nu0">0</span><span class="br0">&#41;</span><span class="br0">&#41;</span> &amp;&amp; <span class="br0">&#40;</span><span class="re0">$this</span>-&gt;<span class="me1">getOption</span><span class="br0">&#40;</span><span class="st0">'CheckIDs'</span><span class="br0">&#41;</span> == <span class="st0">'yes'</span><span class="br0">&#41;</span><span class="br0">&#41;</span>
+			<span class="kw1">return</span> _ERROR_NOSUCHITEM . <span class="st0">"[ $tb_id ]"</span>;</pre>
+				の間に、次のコードを挿入します
+<pre class="code php">		<span class="kw1">if</span> <span class="br0">&#40;</span><span class="re0">$manager</span>-&gt;<span class="me1">pluginInstalled</span><span class="br0">&#40;</span><span class="st0">'NP_CustomURL'</span><span class="br0">&#41;</span><span class="br0">&#41;</span> <span class="br0">&#123;</span>
+
+			<span class="re0">$plugin</span> =&amp; <span class="re0">$manager</span>-&gt;<span class="me1">getPlugin</span><span class="br0">&#40;</span><span class="st0">'NP_CustomURL'</span><span class="br0">&#41;</span>;
+			<span class="re0">$tmp_url</span> = <a href="http://www.php.net/parse_url"><span class="kw3">parse_url</span></a><span class="br0">&#40;</span><span class="re0">$ping_url</span><span class="br0">&#41;</span>;
+			$<span class="re0">$tmp_url</span><span class="br0">&#91;</span><span class="st0">'path'</span><span class="br0">&#93;</span> = <a href="http://www.php.net/trim"><span class="kw3">trim</span></a><span class="br0">&#40;</span><span class="re0">$tmp_url</span><span class="br0">&#91;</span><span class="st0">'path'</span><span class="br0">&#93;</span>, <span class="st0">'/'</span><span class="br0">&#41;</span>;
+			<span class="re0">$path_arr</span> = <a href="http://www.php.net/explode"><span class="kw3">explode</span></a><span class="br0">&#40;</span><span class="st0">"/"</span>, $<span class="re0">$tmp_url</span><span class="br0">&#91;</span><span class="st0">'path'</span><span class="br0">&#93;</span><span class="br0">&#41;</span>;
+			<span class="re0">$i</span> = <a href="http://www.php.net/count"><span class="kw3">count</span></a><span class="br0">&#40;</span><span class="re0">$path_arr</span><span class="br0">&#41;</span> - <span class="nu0">1</span>;
+			<span class="kw1">if</span> <span class="br0">&#40;</span><a href="http://www.php.net/substr"><span class="kw3">substr</span></a><span class="br0">&#40;</span><span class="re0">$path_arr</span><span class="br0">&#91;</span><span class="re0">$i</span><span class="br0">&#93;</span>, <span class="nu0">-5</span><span class="br0">&#41;</span> == <span class="st0">'.html'</span><span class="br0">&#41;</span> <span class="br0">&#123;</span>
+
+				<span class="re0">$item_name</span> = <span class="re0">$path_arr</span><span class="br0">&#91;</span><span class="re0">$i</span><span class="br0">&#93;</span>;
+				<span class="re0">$trush</span> = <a href="http://www.php.net/array_pop"><span class="kw3">array_pop</span></a><span class="br0">&#40;</span><span class="re0">$path_arr</span><span class="br0">&#41;</span>;
+			<span class="br0">&#125;</span> <span class="kw1">elseif</span> <span class="br0">&#40;</span><a href="http://www.php.net/substr"><span class="kw3">substr</span></a><span class="br0">&#40;</span><span class="re0">$path_arr</span><span class="br0">&#91;</span><span class="re0">$i</span><span class="br0">&#93;</span>, <span class="nu0">-10</span><span class="br0">&#41;</span> == <span class="st0">'.trackback'</span><span class="br0">&#41;</span> <span class="br0">&#123;</span>
+
+				<span class="re0">$item_name</span> = <span class="br0">&#40;</span><a href="http://www.php.net/substr"><span class="kw3">substr</span></a><span class="br0">&#40;</span><span class="re0">$path_arr</span><span class="br0">&#91;</span><span class="re0">$i</span><span class="br0">&#93;</span>, <span class="nu0">0</span>, <span class="nu0">-10</span><span class="br0">&#41;</span><span class="br0">&#41;</span> . <span class="st0">'.html'</span>;
+			<span class="br0">&#125;</span>
+			<span class="re0">$trush</span> = <a href="http://www.php.net/array_pop"><span class="kw3">array_pop</span></a><span class="br0">&#40;</span><span class="re0">$path_arr</span><span class="br0">&#41;</span>;
+			<span class="re0">$blog_url</span> = <span class="re0">$tmp_url</span><span class="br0">&#91;</span><span class="st0">'scheme'</span><span class="br0">&#93;</span> . <span class="st0">'://'</span> . <span class="re0">$tmp_url</span><span class="br0">&#91;</span><span class="st0">'host'</span><span class="br0">&#93;</span> . <span class="st0">'/'</span> . <a href="http://www.php.net/implode"><span class="kw3">implode</span></a><span class="br0">&#40;</span><span class="st0">'/'</span>, <span class="re0">$path_arr</span><span class="br0">&#41;</span>;
+			<span class="re0">$blog_url</span> = <a href="http://www.php.net/preg_replace"><span class="kw3">preg_replace</span></a><span class="br0">&#40;</span><span class="st0">'|[^a-zA-Z0-9-~+_.?#=&amp;;,/:@%]|i'</span>, <span class="st0">''</span>, <span class="re0">$blog_url</span><span class="br0">&#41;</span>;
+			<span class="re0">$tbbid</span> = quickQuery<span class="br0">&#40;</span><span class="st0">'SELECT bnumber as result FROM '</span>.sql_table<span class="br0">&#40;</span><span class="st0">'blog'</span><span class="br0">&#41;</span>.<span class="st0">' WHERE burl = &quot;'</span>.<span class="re0">$blog_url</span>.<span class="st0">'&quot;'</span><span class="br0">&#41;</span>;
+			<span class="re0">$tbbid</span> = <a href="http://www.php.net/intval"><span class="kw3">intval</span></a><span class="br0">&#40;</span><span class="re0">$tbbid</span><span class="br0">&#41;</span>;
+			<span class="kw1">if</span> <span class="br0">&#40;</span>!<a href="http://www.php.net/empty"><span class="kw3">empty</span></a><span class="br0">&#40;</span><span class="re0">$tbbid</span><span class="br0">&#41;</span> &amp;&amp; <span class="re0">$plugin</span>-&gt;<span class="me1">getBlogOption</span><span class="br0">&#40;</span><a href="http://www.php.net/intval"><span class="kw3">intval</span></a><span class="br0">&#40;</span><span class="re0">$tbbid</span><span class="br0">&#41;</span>, <span class="st0">'use_customurl'</span><span class="br0">&#41;</span> == <span class="st0">'yes'</span><span class="br0">&#41;</span> <span class="br0">&#123;</span>
+
+				<span class="re0">$item_name</span> = <a href="http://www.php.net/preg_replace"><span class="kw3">preg_replace</span></a><span class="br0">&#40;</span><span class="st0">'|[^a-zA-Z0-9-_.]|i'</span>, <span class="st0">''</span>, <span class="re0">$item_name</span><span class="br0">&#41;</span>;
+				<span class="re0">$que</span> = <span class="st0">'SELECT obj_id as result FROM %s WHERE obj_param = &quot;item&quot; AND obj_name = &quot;%s&quot; AND obj_bid = %d'</span>;
+				<span class="re0">$tbiid</span> = quickQuery<span class="br0">&#40;</span><a href="http://www.php.net/sprintf"><span class="kw3">sprintf</span></a><span class="br0">&#40;</span><span class="re0">$que</span>, sql_table<span class="br0">&#40;</span><span class="st0">'plug_customurl'</span><span class="br0">&#41;</span>, <span class="re0">$item_name</span>, <a href="http://www.php.net/intval"><span class="kw3">intval</span></a><span class="br0">&#40;</span><span class="re0">$tbbid</span><span class="br0">&#41;</span><span class="br0">&#41;</span><span class="br0">&#41;</span>;
+				<span class="kw1">if</span> <span class="br0">&#40;</span>!<a href="http://www.php.net/empty"><span class="kw3">empty</span></a><span class="br0">&#40;</span><span class="re0">$tbiid</span><span class="br0">&#41;</span><span class="br0">&#41;</span> <span class="re0">$tb_id</span> = <a href="http://www.php.net/intval"><span class="kw3">intval</span></a><span class="br0">&#40;</span><span class="re0">$tbiid</span><span class="br0">&#41;</span>;
+			<span class="br0">&#125;</span>
+
+		<span class="br0">&#125;</span></pre>
+				 「/trackback/item_123.html」「/item_123.trackback」の両方に対応できます
+				<h6><a name="customtb" id="customtb">CustomURL な 「.trackback」</a></h6>
+				<div class="level6">
+					NP_CustomURL.php の 1127～1128行目と、1166～1167行目のコメントアウトをはずせば、<span class="nucleus"><span class="kw2">&lt;%</span><span class="kw1">CustomURL</span><span class="br0">&#40;</span><span class="re0">trackback</span><span class="br0">&#41;</span><span class="kw2">%&gt;</span></span>と記述した時に出力される URL が「item_123.trackback」に出来ます
+				</div>
+			</div>
+		</div>
+	</div>
+	<h3><a name="history" id="history">Change log</a></h3>
+	<div class="level3">
+		<ul>
+			<li class="level1">Version 0.3.11
+				<ul>
+					<li class="level2">トラックバック受信時のレスポンスを正しく返すよう修正</li>
+					<li class="level2">ヘルプファイル変更(japan.NucleusCMS.org/wiki/plugins と同じ構成にしました)</li>
+				</ul>
+			</li>
+			<li class="level1">Version 0.3.1
+				<ul>
+					<li class="level2">NP_GoogleSitemap 対応</li>
+					<li class="level2">テンプレート変数で<span class="nucleus"><span class="kw2">&lt;%</span><span class="kw1">CustomURL</span><span class="br0">&#40;</span><span class="re0">path</span><span class="br0">&#41;</span><span class="kw2">%&gt;</span></span>と記述した時に、カレントアイテムの仮想ファイル名を書き出すよう変更</li>
+				</ul>
+			</li>
+			<li class="level1">Version 0.3.01
+				<ul>
+					<li class="level2">RSS feed のアドレスに blogid が付加された時に、ブログトップへリダイレクトされてしまった不具合を修正</li>
+					<li class="level2">URL に「?action=plugin」を使用するプラグインに対応</li>
+				</ul>
+			</li>
+			<li class="level1">Version 0.3.0
+				<ul>
+					<li class="level2">RSS、ATOM の URL を NP_CustomURL で処理(rss2.xml、index.rdf、atom.xml等)</li>
+					<li class="level2">存在しない URL がリクエストされた時の挙動を変更(オプションで選択) (404 or 303)</li>
+					<li class="level2">トラックバック URL の出力に対応</li>
+					<li class="level2">ノーマル URL (index.php?itemid=123) を FancyURL にリダイレクト(302)</li>
+					<li class="level2">サイト内検索の URL を「search/検索語」にリダイレクト(301)</li>
+					<li class="level2">グローバル変数「$CONF[&rsquo;Self&rsquo;]」をアクセスがあったブログ毎に再定義</li>
+				</ul>
+			</li>
+			<li class="level1">Version 0.2.3: 不具合修正・機能追加
+				<ul>
+					<li class="level2">リダイレクト周りにバグがあったので修正</li>
+					<li class="level2">「カスタマイズされたURLを使用する」を「はい」にしている時、旧来のFancuURLでアクセスしてきたクライアントに301を返してリダイレクトするように変更</li>
+				</ul>
+			</li>
+			<li class="level1">Version 0.2.2a: 不具合修正
+				<ul>
+					<li class="level2">SQLインジェクションを引き起こす可能性がある脆弱性に対処</li>
+				</ul>
+			</li>
+			<li class="level1">Version 0.2.2: 不具合修正・機能追加
+				<ul>
+					<li class="level2">バグフィックス</li>
+					<li class="level2">アイテム・カテゴリー・サブカテゴリーの新規作成時のデフォルトの接頭語のオプションでの変更に対応<br />
+					 アイテムの接頭語のみテンプレート化</li>
+				</ul>
+			</li>
+			<li class="level1">Version 0.2.1a: 不具合修正
+				<ul>
+					<li class="level2">バグフィックス</li>
+				</ul>
+			</li>
+			<li class="level1">Version 0.2.1: 機能追加
+				<ul>
+					<li class="level2">サブカテゴリの多段URL化</li>
+					<li class="level2">カテゴリ・ブログの削除時にサブカテゴリのデータが消去できていなかった不具合を修正</li>
+				</ul>
+			</li>
+			<li class="level1">Version 0.1.9: 機能追加
+				<ul>
+					<li class="level2">カテゴリ及びアイテムのブログ間移動に対応</li>
+				</ul>
+			</li>
+			<li class="level1">Version 0.1.8a: 不具合修正・機能追加
+				<ul>
+					<li class="level2">新規サブカテゴリのパス登録のタイミング変更に伴う修正</li>
+					<li class="level2">ブログ毎にカスタマイズした URI を使用する・しないを選択できるようにオプションを追加</li>
+					<li class="level2">ヘルプファイルの修正</li>
+				</ul>
+			</li>
+			<li class="level1">Version 0.1.8: 不具合修正
+				<ul>
+					<li class="level2">新規ブログ作成時に自動で作成される&rsquo;General&rsquo;カテゴリーに対するURIが正常に動作しなかった不具合に対応</li>
+					<li class="level2">ブログを削除した時に、削除したブログに属する「カテゴリー」「サブカテゴリー」「アイテム」のURIがテーブルに残ったままになっていた不具合に対応</li>
+					<li class="level2">新規サブカテゴリーのパスの登録のタイミングをリンクが生成される時に変更(リンク生成前に管理画面でURIを設定していた場合は設定したURIが使用されます)</li>
+					<li class="level2">管理ページでアイテムURIがおかしくなっていたのを修正</li>
+				</ul>
+			</li>
+			<li class="level1">Version 0.1.7: 不具合修正
+				<ul>
+					<li class="level2">ほぼ全面的に書き直し</li>
+					<li class="level2">新規アイテム追加時にトラックバックを送信した時に、トラックバック元のURLが正しく送信できなかった</li>
+					<li class="level2">管理画面からサブカテゴリのパスを編集したときに、リストが表示されなかった</li>
+				</ul>
+			</li>
+			<li class="level1">Version 0.1.5: 公開バージョン</li>
+			<li class="level1">Version 0.01: 初期バージョン(NP_Pathの改造バージョン)</li>
+		</ul>
+	</div>
+</div>

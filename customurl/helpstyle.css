@@ -1,0 +1,147 @@
+tr,td,th {
+	padding:0;
+	margin:0;
+}
+
+h3, h4, h5, h6 {
+	color:#596D9D;
+	background:transparent;
+	font-family:"Lucida Grande", Verdana, Lucida, Helvetica, Arial, sans-serif;
+	font-size:100%;
+	font-weight:bold;
+	margin:0 0 1em 0;
+	padding:0.5em 0 3px 0;
+	border-bottom:1px dotted gray;
+	clear:left;
+}
+
+h3 {font-size:120%; margin-left:40px; /*border-bottom:none;*/ }
+h4 {font-size:110%; margin-left:60px; /*border-bottom:none;*/ }
+h5 {font-size:100%; margin-left:80px; /*border-bottom:none;*/ }
+h6 {font-size:100%; margin-left:100px; /*border-bottom:none;*/ }
+
+div.level3 {margin-left:43px;}
+div.level4 {margin-left:63px;}
+div.level5 {margin-left:83px;}
+div.level6 {margin-left:103px;}
+
+ul {
+	line-height:1.5em ! important;
+	list-style-type:square ! important;
+	margin:0 0 0.5em 20px ! important;
+	padding:0 ! important;
+/*	list-style-image:url(img/bullet.gif);*/
+}
+
+ol {
+	line-height:1.5em ! important;
+	margin:0 0 0.5em 20px ! important;
+	padding:0 ! important;
+	color:black ! important;
+	font-weight:bold ! important;
+	list-style-image:none ! important;
+}
+
+pre {
+	/* Mozilla, supported since 1999 */
+	white-space:-moz-pre-wrap ! important;
+	/* Opera 4 - 6 */
+	white-space:-pre-wrap ! important;
+	 /* Opera 7 */
+	white-space:-o-pre-wrap ! important;
+	/* CSS3 - Text module (Candidate Recommendation) http://www.w3.org/TR/css3-text/#white-space */
+	white-space:pre-wrap ! important;
+	/* IE 5.5+ */
+	word-wrap:break-word ! important;
+}
+
+/* pre.pre = code blocks by indention */
+/* pre.code = code blocks by code tag */
+/* pre.file = code blocks by file tag */
+pre.code {
+	font-family: 'Lucida Grande', Verdana, Geneva, Lucida, Arial, Helvetica, sans-serif ! important;
+	line-height:140% ! important;
+	font-size:x-small ! important;
+	margin-top:0.5em ! important;
+	margin-bottom:1em ! important;
+	padding:0.5em ! important;
+	border:1px dashed #9BADCA ! important;
+	color:#000 ! important;
+	background:#f7f9fa ! important;
+	overflow:auto ! important;
+}
+
+/* inline tables */
+table.inline {
+	background:#FFF ! important;
+	border-spacing:0 ! important;
+	border-collapse:collapse ! important;
+}
+
+table.inline th {
+	padding:3px ! important;
+	border-bottom:1px solid gray ! important;
+	background:#f5f5f5 ! important;
+	color:#1D5EB3 ! important;
+	border: 1px solid #CACACA ! important;
+	text-align: left ! important;
+}
+
+table.inline td {
+	padding:3px ! important;
+	border:1px solid #CACACA ! important;
+}
+
+div.toc {
+	margin-left:2em ! important;
+	margin-top:1.2em ! important;
+	margin-bottom:0 ! important;
+	float:right ! important;
+	width:180px ! important;
+	font-size:90% ! important;
+	clear:both ! important;
+	border-right:1px solid #9E9E9E ! important;
+	border-left:1px solid #E0E0E0 ! important;
+    background:#FFF ! important;
+}
+
+div.tocheader {
+	padding:3px ! important;
+	border-bottom:1px solid #E0E0E0 ! important;
+	background:#1D5EB3 ! important;
+	text-align:left ! important;
+	font-size:11px ! important;
+	font-weight:bold ! important;
+	margin-bottom:2px ! important;
+	color:#FFF ! important;
+}
+
+#toc__inside {
+	border-bottom:1px solid gray ! important;
+	background:#FFF ! important;
+	text-align:left ! important;
+	padding-bottom:0.7em ! important;
+}
+
+ul.toc {
+	list-style-type:none ! important;
+	list-style-image:none ! important;
+	line-height:1.2em ! important;
+	margin:0 ! important;
+	padding:0 0 0 1em ! important;
+}
+
+ul.toc li {
+	background:transparent url(img/tocdot2.gif) 0 0.6em no-repeat ! important;
+	padding-left:0.4em ! important;
+}
+
+a.toc {
+	color:#104C89 ! important;
+	text-decoration:none ! important;
+}
+
+a.toc:hover {
+	color:#3085E4 ! important;
+	text-decoration:underline ! important;
+}

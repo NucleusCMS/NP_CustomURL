@@ -1,0 +1,181 @@
+<h3>プラグインの概要</h3>
+
+<p>
+
+NucleusCMSで作成したwebサイトのアイテム・カテゴリに好きな名前をつけて、静的URLとしてリンクを生成します。<br />
+<em style="color:#cc0000;">FancyURLモードでのみの動作、及びmod_Rewrite必須です</em><br />
+カテゴリ、サブカテゴリ、アーカイブリスト等を、それぞれディレクトリとみなし、カテゴリで絞り込んだ時は当該カテゴリのディレクトリにあるindexファイルを参照するイメージになります<br />
+<ul style="margin:0 0 25px 12px;">ex.
+<li>カテゴリへのアクセスのイメージ:
+<ul><li>http://example.jp/nucleuscms/</li></ul></li>
+<li>サブカテゴリへのアクセスのイメージ:
+<ul><li>http://example.jp/nucleuscms/plugins/</li></ul></li>
+<li>アーカイブへのアクセスのイメージ:
+<ul><li>http://example.jp/archives/</li><li>http://example.jp/archives/nucleuscms/</li></ul></li>
+</ul>
+メンバーの詳細ページと個別アイテムページは、当該htmlファイルにアクセスするイメージになります<br />
+<ul style="margin:0 0 25px 12px;">ex.
+<li>http://example.jp/nucleuscms/plugins/NP_CustomURL.html</li>
+<li>http://example.jp/new_nucleus_comming_soon.html</li>
+<li>http://example.jp/member/Hiroyuki.html</li>
+</ul>
+
+</p>
+
+<h3>インストール・動作開始手順</h3>
+
+<p>
+
+<ol style="margin:0 0 25px 12px;">
+<li>ダウンロードしたファイルを解凍して出来た「NP_CustomURL.php」ファイルと「customurl」ディレクトリをサーバの plugins ディレクトリにアップロード後、「プラグインの管理」ページで「CustomURL」を選択して「プラグインのインストール」ボタンをクリックします<br />
+(この文章を読んでいるということは、ここまでは出来ていると思います)</li>
+<li>まず始めに、管理画面の「グローバル設定」ページで「URL モード」を「Fancy」に変更します</li>
+<li>通常の「extra」ディレクトリの「fancyurls.config.php」を、FancyURLsの手順通りトップディレクトリへコピーして編集します<br />このときコピーするのは「fancyurls.config.php」ファイルだけで、後のファイルはコピーする必要がありません</li>
+<li>次に「index.php」を編集しますの <code>$CONF['Self']</code> の行を <code>$CONF['Self'] = '.'</code> に書き換え、 <code>$curl_blogid = 1;</code>("1"は「index.php」でアクセスするブログのID) と一行書き加えます
+<blockquote><pre style="overflow:auto;">&lt;?php
+// This file will generate and return the main page of the site
+$CONF = array();
+$CONF['Self'] = '.';
+$npcu_blogid = 1;
+
+include('./config.php');
+include('./fancyurls.config.php');
+
+selector();
+
+?&gt;
+</pre></blockquote>
+</li>
+<li>次に<code>.htaccess</code>を編集します<ul>
+    <li>内容はこちら<blockquote><pre style="overflow:auto;">RewriteEngine on
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php?curl=$1 [L,QSA]
+</pre></blockquote>
+この4行だけで、後は何も書かなくても大丈夫です</li></ul></li>
+</ol>
+これで準備完了です<br />
+<br />
+注1：現在 FancyURLs で運用されている方は、Fancy 用のファイルを削除するか別ディレクトリへ退避してください。すべてこのプラグインで受けているので必要ありません<br />
+また、下記プラグイン用のFancyファイルは組み込み済みですので不要です
+<ul>
+<li>各ページスイッチ用「page」ファイル</li>
+<li>タグ用「tag」ファイル(「NP_TagEX」「NP_MultiTags」両方対応。「NP_MultiTags」の「タグクエリー 」の変更にも対応しています)</li>
+<li>「NP_Trackback」のトラックバック受信専用「trackback」ファイル</li>
+</ul>
+</p>
+
+<h3>使い方</h3>
+
+<p>
+
+<ul>
+<li style="margin-top:3px;">ブログ・アイテム・カテゴリ・メンバーの編集ページにそれぞれオプションが追加してありますので、好きな名前をつけてください</li>
+<li style="margin-top:3px;">メンバーの新規追加、及び｢ブログの設定の編集｣ページからのカテゴリの新規追加の時にはこれらの編集画面が出ませんので、追加したあとにそれぞれ編集してください</li>
+<li style="margin-top:3px;">新規追加時のデフォルトの名前は、ブログは[ショートネーム]カテゴリーは[category_(catid)]、アイテムは[item.html]、メンバーは[ログインネーム.html]がそれぞれ設定されます<br />
+	なお、プラグインのインストール時にブログに存在した全てのブログ・アイテム・カテゴリ・メンバーには自動でパスを生成済みです</li>
+<li style="margin-top:3px;">同一ブログ内、同一キーでの名前は重複できませんので気をつけてください<br />
+	登録しようとしたパスが重複していた場合は、末尾にそれぞれのIDが'_id'の形で追加されます<br />
+	同一ブログであっても、カテゴリーとサブカテゴリー、アイテムは同じ名前をつけることが出来ます<br />
+	つまり、http://example.jp/nucleuscms/nucleuscms/nucleuscms.htmlは有効なパスとなります</li>
+<li style="margin-top:3px;">メンバー、及びアイテムのパスには、末尾に自動的に[.html]が付加されるので、編集時に[.html]をつけないように気をつけてください<br />
+	うっかり付けてしまうと、[item_html.html]というような、なんだかよく解らないファイル名が出来上がってしまいます</li>
+<li style="margin-top:3px;">メンバーディレクトリ、アーカイブディレクトリ、アーカイブリストディレクトリはプラグインの編集画面で変更できます。初期値はそれぞれの<code>$CONF['***Key']</code>の値になっています</li>
+<li style="margin-top:3px;">ディレクトリ名、及びファイル名として使用できる文字は半角英数字(a-z,A-Z,0-9)と半角ハイフン(-)と半角アンダーバー(_)のみです<br />
+	なお、指定された文字列の中に含まれている '/'(スラッシュ)や'.'(ピリオド)は、自動的に '_'(半角アンダーバー)に変換されますが、それ以外のときはエラーを返します<br />
+	URL生成のときはアルファベットの大文字小文字の区別はしますが、アクセスのときはURLの使用上区別できません<br />
+	通常のHTMLリンク同様、 http://example.jp/NucleusCMS/ と表示してあるリンクに対し、ブラウザのアドレス欄に http://example.jp/nucleuscms/ でアクセス可能です</li>
+<li style="margin-top:3px;">サブカテゴリ用のディレクトリ名は、現在管理画面でのみ編集可能です<br />
+	新しく追加されたサブカテゴリについてはリンク生成のタイミングでデータベースを更新しているので、実用上問題ないと思います<br />
+	デフォルトのサブカテゴリ用ディレクトリ名は[subcatid_(subid)]です</li>
+<li style="margin-top:3px;">管理画面、編集画面でディレクトリ名を空白にした場合は、データベースからその名前が削除され、URLは従来のFancyURLsのものになります<br />
+	(但しサブカテゴリーについては、追加・削除のタイミングがプラグイン側で判断できないため、「空白文字列 = デフォルト名」になります)</li>
+<li style="margin-top:3px;">ブログアクセス用パスとカテゴリーアクセス用パスには同じ名前をつけることが出来ません<br />
+	これは <code>hostname</code> の次に来るパス名がカテゴリのものであるのかブログのものであるのかを見分ける有効な手段が見つからないための制限です</li>
+<li style="margin-top:3px;">トップディレクトリ直下に実在するディレクトリ名やファイル名をパスとして登録することは出来ますが、httpサーバは実在するものの方を返すので、このパスは事実上無効となります</li>
+<li style="margin-top:3px;">このプラグインのインストール後でも、従来のクエリ式のURL(ex. http://example.jp/index.php?catid=123)やFancyURLs式のURL(ex. http://example.jp/category/12/item/34)でのアクセスは可能です</li>
+</ul>
+
+</P>
+
+<h3>スキン・テンプレート変数</h3>
+
+<p>
+スキン・テンプレート、及び記事中に記入することが出来ます<br />
+記入方法：<code>&lt;%CustomURL(リンク先, リンク文字列, リンクタイトル)%&gt;</code><br />
+<ul>
+<li>リンク先：i/itemid/i または i/itemname/n のように書きます<br />
+	ブログ・カテゴリ・サブカテゴリ・アイテムに各々対応します<br />
+	第一パラグラフがそれぞれの頭文字(カテゴリなら「c」サブカテゴリなら「s」)で、第二パラグラフはidか、または設定したパス名、第三パラグラフは、第二パラグラフがidの時は｢i｣、パス名のときは「n」になります<br />
+	第二パラグラフがidの場合は第三パラグラフは省略可能です<br />
+	また、数字のみの指定(ex. &lt;%CustomURL(123)%$gt;)で、その数字をidに持つアイテムへのリンクが生成されます<br />
+	省略された場合は、スキンに書いた場合はブログの、テンプレートや記事中に書いた場合はアイテムの、それぞれ選択されているもののリンクが生成されます</li>
+<li>リンク文字列：a タグに挟まれる文字列。省略された場合は a タグのみが生成されます</li>
+<li>リンクタイトル：a タグの「title」属性に設定されます。省略された場合は、リンク文字列が存在すれば変わりに設定されますが、リンク文字列も存在しない場合は「title」属性は設定されません</li>
+</ul>
+</p>
+
+<h3>動作報告・バグレポート</h3>
+
+<p>動作報告・バグレポートは、以下のURLにコメント・トラックバックをお願いします<br />
+<a href="http://shizuki.kinezumi.net/NucleusCMS/Plugins/NP_CustomURL.html">
+http://shizuki.kinezumi.net/NucleusCMS/Plugins/NP_CustomURL.html</a></p>
+
+<h3>バージョン履歴</h3>
+
+<ul>
+<li>Version 0.1.7: 不具合修正
+	<ul>
+	<li>新規アイテム追加時にトラックバックを送信した時に、トラックバック元のURLが正しく送信できなかった</li>
+	<li>管理画面からサブカテゴリのパスを編集したときに、リストが表示されなかった</li>
+	</ul>
+</li>
+<li>Version 0.1.5: 公開バージョン</li>
+<li>Version 0.01: 初期バージョン(NP_Pathの改造バージョン)</li>
+</ul>
+
+<h3>プラグイン改造情報</h3>
+
+<p>
+
+「NP_TagEX」と「NP_ContentsList」で 「http://example.jp/nucleuscms/plugins/tag/NP_CustomURL」 形式のリンクを表示させる方法<br />
+<br />
+「NP_TagEX」の場合<br />
+・一番最後のファンクション<code>creatTagLink()</code>の最後の<code>return addLinkParams($link, $linkparams);</code>の直前に、次のコードを挿入します<br />
+<blockquote><pre style="overflow:auto;">global $manager;
+if ($manager->pluginInstalled('NP_CustomURL')) {
+    $customurls = $manager->getPlugin('NP_CustomURL');
+    $link = 'tag/' . $ready.$sep.$this->_rawencode($tag);
+    return $CONF['BlogURL'] . '/' . $customurls->_addLinkParams($link, $linkparams) . '/';
+}
+</pre></blockquote>
+これでタグがURLの一番最後になります<br />
+<br />
+「NP_ContentsList」の場合<br />
+・<code>doSkinVar()</code>の467行目付近、<code>$catdata['catlink']</code>の生成が終了したところでサブカテゴリのリンクを生成する直前、
+<blockquote><pre style="overflow:auto;">// sub category ---
+if ($subcat && (!$subcurrent || $catid == $catdata['catid']) && !$subnoOpen) {
+</pre></blockquote>
+の前の行に
+<blockquote><pre style="overflow:auto;">if ($CONF['URLMode'] == 'pathinfo' && $manager->pluginInstalled('NP_CustomURL')) {
+    $catdata['catlink'] = createCategoryLink($catdata['catid']);
+}
+</pre></blockquote>の一行を追加して、カテゴリのリンクを上書きします<br />
+さらにそこからもう少し下の
+<blockquote><pre style="overflow:auto;">$subdata['sublink'] = addLinkParams($catdata['catlink'], array($subrequest => $subdata['subcatid']));
+</pre></blockquote>
+となっている行の下に
+<blockquote><pre style="overflow:auto;">global $manager;
+if ($CONF['URLMode'] == 'pathinfo' && $manager->pluginInstalled('NP_CustomURL')) {
+    $customurls = $manager->getPlugin('NP_CustomURL');
+    $subdata['sublink'] = $customurls->_addLinkParams($catdata['catlink'], array($subrequest => $subdata['subcatid']));
+}
+</pre></blockquote>
+と追加、350行目付近の<code>$data['self'] = $data['blogurl'];</code>の前に
+<blockquote><pre style="overflow:auto;">if ($CONF['URLMode'] == 'pathinfo' && $manager->pluginInstalled('NP_CustomURL')) {
+    $data['blogurl'] = createBlogidLink($data['blogid']);
+}
+</pre></blockquote>
+を追加して終了です
+
+</p>
