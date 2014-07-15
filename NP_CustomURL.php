@@ -2353,7 +2353,7 @@ OUTPUT;
 				exit;
 			}
 		} elseif ($arch_option || $arvs_option || $memd_option) {
-			if (!ereg("^[-_a-zA-Z0-9]+$", $data['value'])) {
+			if (!preg_match('/^[-_a-zA-Z0-9]+$/', $data['value'])) {
 				$name = substr($data['optionname'], 8);
 				$msg  = array (1, _INVALID_ERROR, $name, _INVALID_MSG);
 				$this->error($msg);
@@ -2435,7 +2435,7 @@ OUTPUT;
 
 		$dotslash = array ('.', '/');
 		$path     = str_replace ($dotslash, '_', $path);
-		if (!ereg("^[-_a-zA-Z0-9]+$", $path)) {
+		if (!preg_match('/^[-_a-zA-Z0-9]+$/', $path)) {
 			$msg = array (1, _INVALID_ERROR, $name, _INVALID_MSG);
 			return $msg;
 			exit;
