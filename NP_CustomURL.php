@@ -16,41 +16,18 @@ if (!defined('_CUSTOMURL_TABLE_DEFINED')) {
 class NP_CustomURL extends NucleusPlugin
 {
 
-	function getMinNucleusVersion()
-	{
-		return '364';
-	}
-
-	function getName()
-	{
-		return 'Customized URL';
-	}
-
-	function getAuthor()
-	{
-		return 'shizuki + nekonosippo + Cacher + Reine';
-	}
-
-	function getURL()
-	{
-		return 'http://japan.nucleuscms.org/wiki/plugins:customurl';
-	}
-
-	function getVersion()
-	{
-		return '0.3.8';
-	}
-
-	function getDescription()
-	{
-		return _DESCRIPTION;
-	}
-
+	function getMinNucleusVersion() { return '364';}
+	function getName()              { return 'Customized URL';}
+	function getAuthor()            { return 'shizuki + nekonosippo + Cacher + Reine';}
+	function getURL()               { return 'http://japan.nucleuscms.org/wiki/plugins:customurl';}
+	function getVersion()           { return '0.3.8';}
+	function getDescription()       { return _DESCRIPTION;}
+	function hasAdminArea()         { return 1;}
+	function getTableList()         { return array(_CUSTOMURL_TABLE);}
 	function supportsFeature($what)
 	{
 		switch ($what) {
 			case 'SqlTablePrefix':
-				return 1;
 			case 'HelpPage':
 				return 1;
 			default:
@@ -58,10 +35,6 @@ class NP_CustomURL extends NucleusPlugin
 		}
 	}
 
-	function hasAdminArea()
-	{
-		return 1;
-	}
 
 	function event_QuickMenu(&$data)
 	{
@@ -79,13 +52,6 @@ class NP_CustomURL extends NucleusPlugin
 				'tooltip' => _QUICK_TIPS
 			)
 		);
-	}
-
-	function getTableList()
-	{
-		return	array(
-					  _CUSTOMURL_TABLE
-					 );
 	}
 
 	function getEventList()
