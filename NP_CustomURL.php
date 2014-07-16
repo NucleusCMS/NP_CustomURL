@@ -308,12 +308,11 @@ class NP_CustomURL extends NucleusPlugin
 	function init()
 	{
 		global $admin;
-		$language = preg_replace( '[\\|/]', '', getLanguageName());
-		if (file_exists($this->getDirectory() . 'language/' . $language . '.php')) {
-			include_once($this->getDirectory() . 'language/' . $language . '.php');
-		} else {
-			include_once($this->getDirectory() . 'language/english.php');
-		}
+		$language = str_replace(array('\\','/'), '', getLanguageName());
+		$plugin_path = $this->getDirectory();
+		if (!is_file("{$plugin_path}language/{$language}.php"))
+			$language = 'english';
+		include_once("{$plugin_path}language/{$language}.php");
 	}
 
 	function pluginCheck($pluginName)
