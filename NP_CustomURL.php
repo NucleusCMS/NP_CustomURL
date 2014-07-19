@@ -1,5 +1,8 @@
 <?php
 
+global $CONF;
+$CONF['Self']='';
+
 if (!function_exists('htmlspecialchars_decode')) {
 	function htmlspecialchars_decode($text)
 	{
