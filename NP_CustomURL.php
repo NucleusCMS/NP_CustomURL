@@ -466,7 +466,7 @@ class NP_CustomURL extends NucleusPlugin
 			if ($redirectSerch) {
 				if ($search_q) {
 					$que_str     = getVar('query');
-					$que_str     = htmlspecialchars($que_str);
+					$que_str     = $this->hsc($que_str);
 					if (extension_loaded('mbstring')) {
 						$que_str = str_replace('/', 'ssslllaaassshhh', $que_str);
 						$que_str = str_replace("'", 'qqquuuooottt', $que_str);
@@ -1712,16 +1712,16 @@ class NP_CustomURL extends NucleusPlugin
 		$url = $this->_genarateObjectLink($link_params, $scatFlag);
 		if ($target) {
 			if ($title) {
-				$ObjLink = '<a href="' . htmlspecialchars($url) . '" '
-						 . 'title="' . htmlspecialchars($title) . '">'
-						 . htmlspecialchars($target) . '</a>';
+				$ObjLink = '<a href="' . $this->hsc($url) . '" '
+						 . 'title="' . $this->hsc($title) . '">'
+						 . $this->hsc($target) . '</a>';
 			} else {
-				$ObjLink = '<a href="' . htmlspecialchars($url) . '" '
-						 . 'title="' . htmlspecialchars($target) . '">'
-						 . htmlspecialchars($target) . '</a>';
+				$ObjLink = '<a href="' . $this->hsc($url) . '" '
+						 . 'title="' . $this->hsc($target) . '">'
+						 . $this->hsc($target) . '</a>';
 			}
 		} else {
-			$ObjLink = htmlspecialchars($url);
+			$ObjLink = $this->hsc($url);
 		}
 		return $ObjLink;
 	}
@@ -1978,8 +1978,8 @@ class NP_CustomURL extends NucleusPlugin
 ?>
 <rss version="2.0">
   <channel>
-    <title><?php echo htmlspecialchars($CONF['SiteName'], ENT_QUOTES)?></title>
-    <link><?php echo htmlspecialchars($CONF['IndexURL'], ENT_QUOTES)?></link>
+    <title><?php echo $this->hsc($CONF['SiteName'], ENT_QUOTES)?></title>
+    <link><?php echo $this->hsc($CONF['IndexURL'], ENT_QUOTES)?></link>
     <description></description>
     <docs>http://backend.userland.com/rss</docs>
   </channel>
@@ -2548,5 +2548,24 @@ OUTPUT;
 		}
 		$_REQUEST['trackback_ping_url'] = implode ("\n", $ping_urls);
 	}
-
+	
+	function hsc($string, $flags=ENT_QUOTES, $encoding='')
+	{
+		if($encoding==='')
+		{
+			if(defined('_CHARSET')) $encoding = _CHARSET;
+			else                    $encoding = 'utf8';
+		}
+		if(version_compare(PHP_VERSION, '5.2.3', '>='))
+			return htmlspecialchars($string, $flags, $encoding, false);
+		else
+		{
+			if(function_exists('htmlspecialchars_decode'))
+				$string = htmlspecialchars_decode($string, $flags);
+			else
+				$string = strtr($string, array_flip(get_html_translation_table(HTML_SPECIALCHARS)));
+			
+			return htmlspecialchars($string, $flags, $encoding);
+		}
+	}
 }
