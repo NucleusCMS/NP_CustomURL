@@ -471,13 +471,13 @@ class NP_CustomURL extends NucleusPlugin
 					$que_str     = getVar('query');
 					$que_str     = $this->hsc($que_str);
 					if (extension_loaded('mbstring')) {
-						$que_str = str_replace('/', 'ssslllaaassshhh', $que_str);
-						$que_str = str_replace("'", 'qqquuuooottt', $que_str);
-						$que_str = str_replace('&', 'aaammmppp', $que_str);
+						$que_str = str_replace('/', md5('/'), $que_str);
+						$que_str = str_replace("'", md5("'"), $que_str);
+						$que_str = str_replace('&', md5('&'), $que_str);
 					} else {
-						$que_str = str_replace('/', 'ssslllaaassshhh', $que_str);
-						$que_str = str_replace("'", 'qqquuuooottt', $que_str);
-						$que_str = str_replace('&', 'aaammmppp', $que_str);
+						$que_str = str_replace('/', md5('/'), $que_str);
+						$que_str = str_replace("'", md5("'"), $que_str);
+						$que_str = str_replace('&', md5('&'), $que_str);
 					}
 					$que_str     = urlencode($que_str);
 					$search_path = 'search/' . $que_str;
@@ -796,13 +796,13 @@ class NP_CustomURL extends NucleusPlugin
 					if ($redirectSerch) {
 						$que_str = urldecode($v_path[$i]);
 						if (extension_loaded('mbstring')) {
-							$que_str = str_ireplace('ssslllaaassshhh', '/', $que_str);
-							$que_str = str_ireplace('qqquuuooottt',    "'", $que_str);
-							$que_str = str_ireplace('aaammmppp',       '&', $que_str);
+							$que_str = str_ireplace(md5('/'), '/', $que_str);
+							$que_str = str_ireplace(md5("'"), "'", $que_str);
+							$que_str = str_ireplace(md5('&'), '&', $que_str);
 						} else {
-							$que_str = str_ireplace('ssslllaaassshhh', '/', $que_str);
-							$que_str = str_ireplace('qqquuuooottt',    "'", $que_str);
-							$que_str = str_ireplace('aaammmppp',       '&', $que_str);
+							$que_str = str_ireplace(md5('/'), '/', $que_str);
+							$que_str = str_ireplace(md5("'"), "'", $que_str);
+							$que_str = str_ireplace(md5('&'), '&', $que_str);
 						}
 						$que_str       = htmlspecialchars_decode($que_str);
 						$_GET['query'] = $que_str;
