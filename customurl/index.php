@@ -13,12 +13,12 @@
 
 	// create the admin area page
 	$oPluginAdmin = new PluginAdmin('CustomURL');
-	$language     = str_replace( array('\\''/'), '', getLanguageName());
-	if (file_exists($oPluginAdmin->plugin->getDirectory() . 'language/' . $language . '.php')) {
-		include_once($oPluginAdmin->plugin->getDirectory() . 'language/' . $language . '.php');
-	} else {
-		include_once($oPluginAdmin->plugin->getDirectory() . 'language/english.php');
-	}
+	$lang_name     = str_replace( array('\\''/'), '', getLanguageName());
+	$NP_CustomURL_dir = $oPluginAdmin->plugin->getDirectory();
+	if (is_file("{$NP_CustomURL_dir}language/{$lang_name}.php"))
+		include_once("{$NP_CustomURL_dir}language/{$lang_name}.php");
+	else
+		include_once("{$NP_CustomURL_dir}language/english.php");
 
 	if (!($member->isLoggedIn() && $member->isAdmin())) {
 		ACTIONLOG::add(WARNING, _ACTIONLOG_DISALLOWED . serverVar('REQUEST_URI'));

@@ -2,7 +2,7 @@
 	include('../../../config.php');
 	$language = str_replace( array('\\','/'), '', getLanguageName());
 	$url = './'.$language.'_help.html';
-	if(file_exists($url)){
+	if(is_file($url)){
 		$message=file($url);
 	}
 	else{
@@ -17,7 +17,6 @@
 		$message[$i] = str_replace('"', '\\"', $message[$i]);
 		$message[$i] = str_replace('/', '\\/', $message[$i]);
 		$message[$i] = str_replace('    ', '\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;', $message[$i]);
-		print ("document.write('{$message[$i]}\\n');");
+		echo ("document.write('{$message[$i]}\\n');");
 		$i++;
 	}
-?>
