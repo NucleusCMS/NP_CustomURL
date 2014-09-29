@@ -13,7 +13,7 @@
 
 	// create the admin area page
 	$oPluginAdmin = new PluginAdmin('CustomURL');
-	$language     = ereg_replace( '[\\|/]', '', getLanguageName());
+	$language     = str_replace( array('\\''/'), '', getLanguageName());
 	if (file_exists($oPluginAdmin->plugin->getDirectory() . 'language/' . $language . '.php')) {
 		include_once($oPluginAdmin->plugin->getDirectory() . 'language/' . $language . '.php');
 	} else {
