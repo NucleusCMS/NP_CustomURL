@@ -13,7 +13,7 @@
 
 	// create the admin area page
 	$oPluginAdmin = new PluginAdmin('CustomURL');
-	$lang_name     = str_replace( array('\\''/'), '', getLanguageName());
+	$lang_name     = str_replace( array('\\','/'), '', getLanguageName());
 	$NP_CustomURL_dir = $oPluginAdmin->plugin->getDirectory();
 	if (is_file("{$NP_CustomURL_dir}language/{$lang_name}.php"))
 		include_once("{$NP_CustomURL_dir}language/{$lang_name}.php");
