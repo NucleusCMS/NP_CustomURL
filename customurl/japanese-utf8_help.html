@@ -256,18 +256,18 @@ selector<span class="br0">&#40;</span><span class="br0">&#41;</span>;
 
 		<h4><a name="cpi_server" id="cpi_server">CPI のサーバを利用する場合の注意点</a></h4>
 		<div class="level4">
-			ユーザーの方から情報をいただきました CPI のサーバで NP_CustomURL を利用する場合、.htaccess の RewriteEngine on の前に 
+			CPIなど一部のサーバで NP_CustomURL を利用する場合、.htaccess の RewriteEngine on の前に 
 			<pre class="code apache"><span class="kw1">Options</span> +<span class="kw2">FollowSymLinks</span></pre>
-			を追加しないと 403 エラーになるそうです ブロゲ様、情報ありがとうございました
+			を追加しないと 403 エラーになることがあります。
 		</div>
 	</div>
 	<h3><a name="usage" id="usage">このプラグインの使い方</a></h3>
 	<div class="level3">
 		<p>
-		各ブログ・カテゴリ・アイテム等の URL をカスタマイズし、通常サイトと同じ様なディレクトリ階層の URL を提供します<br />
-		  各 URL のカスタマイズはプラグインの管理画面、または各ブログ・カテゴリ・アイテムの設定画面で変更します<br />
+		各ブログ・カテゴリ・アイテム等の URL をカスタマイズし、通常サイトと同じ様なディレクトリ階層の URL を提供します。<br />
+		  各 URL のカスタマイズはプラグインの管理画面、または各ブログ・カテゴリ・アイテムの設定画面で変更します。<br />
 		  NP_MultipleCategories のサブカテゴリに対応しています(無限階層対応)<br />
-		ブログ、アイテム、カテゴリ、メンバーの各個別の仮想ディレクトリ・ファイル名は、それぞれの編集画面、及びプラグインの管理画面(インストールしたままの状態だと左端の『クイックリンク』に管理画面へのリンクが表示されます)から変更する事が出来ます サブカテゴリの仮想ディレクトリ名は、プラグインの管理画面からのみの変更になります
+		ブログ、アイテム、カテゴリ、メンバーの各個別の仮想ディレクトリ・ファイル名は、それぞれの編集画面、及びプラグインの管理画面(インストールしたままの状態だと左端の『クイックリンク』に管理画面へのリンクが表示されます)から変更することができます。サブカテゴリの仮想ディレクトリ名は、プラグインの管理画面からのみの変更になります。
 		</p>
 		<h4><a name="defaultname" id="defaultname">デフォルトの仮想ディレクトリ・ファイル名</a></h4>
 		<div class="level4">
@@ -280,16 +280,16 @@ selector<span class="br0">&#40;</span><span class="br0">&#41;</span>;
 				<tr><th>月別アーカイブ仮想ディレクトリ</th><td>archive</td></tr>
 				<tr><th>個別アイテム仮想ファイル名</th><td>アイテムの ID の前に「item_」後ろに「.html」</td></tr>
 			</table>
-			ブログ仮想ディレクトリ以外のデフォルトはオプションの編集画面で変更できます
+			ブログ仮想ディレクトリ以外のデフォルトはオプションの編集画面で変更できます。
 		</div>
 		<h4><a name="rss_atom" id="rss_atom">RSS/ATOM の URL</a></h4>
 		<div class="level4">
 			RSS、ATOM へのリンクは、通常通り 
 			<pre class="code nucleus"><span class="kw2">&lt;%</span><span class="kw1">sitevar</span><span class="br0">&#40;</span><span class="re0">url</span><span class="br0">&#41;</span><span class="kw2">%&gt;</span>xml-rss2.php?blogid=n</pre>
-			 と書く事も出来ますが(このときは blogsetting ではなく、必ず sitevar を使用してください)、固定ファイルの様に 
+			 と書くこともできますが(このときは blogsetting ではなく、必ず sitevar を使用してください)、固定ファイルのように 
 			<pre class="code nucleus"><span class="kw2">&lt;%</span><span class="kw1">blogsetting</span><span class="br0">&#40;</span><span class="re0">url</span><span class="br0">&#41;</span><span class="kw2">%&gt;</span>rss2.xml</pre>
-			 と書く事も出来ます(こちらは blogsetting でも sitevar でもどちらでも可) 
-			 各 feed の仮想ファイル名は以下の様になっています
+			 と書くこともできます(こちらは blogsetting でも sitevar でもどちらでも可) 
+			 各 feed の仮想ファイル名は以下の様になっています。
 			<table class="inline">
 				<tr><th>RSS 1.0</th><td>index.rdf または rss1.xml</td></tr>
 				<tr><th>RSS 2.0</th><td>rss2.xml</td></tr>
@@ -306,23 +306,23 @@ selector<span class="br0">&#40;</span><span class="br0">&#41;</span>;
 		<pre class="code nucleus"><span class="kw2">&lt;%</span><span class="kw1">CustomURL</span><span class="br0">&#40;</span><span class="re0">i/12/i</span>,&nbsp;<span class="re0">LinkTest</span>,&nbsp;<span class="re0">LinkTitle</span><span class="br0">&#41;</span><span class="kw2">%&gt;</span></pre>
 		<ul>
 			<li class="level1">第1パラメータ(i/12/i)<br />
-			 リンク先の種類、id、id かリンクネームかの種別を &lsquo;/&rsquo; で区切って記述します<br />
-			 第1パラメータのみの指定の場合、出力は &lt;a href=～&gt; の形ではなく、URL(http:～) のみの出力となります
+			 リンク先の種類、id、id かリンクネームかの種別を &lsquo;/&rsquo; で区切って記述します。<br />
+			 第1パラメータのみの指定の場合、出力は &lt;a href=～&gt; の形ではなく、URL(http:～) のみの出力となります。
 			<ul>
-				<li class="level2">数字のみが書かれた場合、blogid として処理されます</li>
-				<li class="level2">3番目が省略された場合は2番目を id として処理します</li>
-				<li class="level2">アイテムへのリンクに使用できるのは id のみです</li>
-				<li class="level2">アイテムを指定した時のみ3番目に[path]を指定する事が出来ます<br />
-				   [path] を指定した時は、指定したアイテムにつけた仮想ファイル名(item_123.html)が出力されます</li>
+				<li class="level2">数字のみが書かれた場合、blogid として処理されます。</li>
+				<li class="level2">3番目が省略された場合は2番目を id として処理します。</li>
+				<li class="level2">アイテムへのリンクに使用できるのは id のみです。</li>
+				<li class="level2">アイテムを指定した時のみ3番目に[path]を指定することができます。<br />
+				   [path] を指定した時は、指定したアイテムにつけた仮想ファイル名(item_123.html)が出力されます。</li>
 			</ul>
 			</li>
 			<li class="level1">第2パラメータ(LinkText)<br />
 			 リンクを張るテキストを指定します(省略可能)</li>
 			<li class="level1">第3パラメータ(LinkTitle)<br />
-			 &lt;a&gt; タグの title 属性を指定します<br />
-			 LinkText が指定されている時にこのパラメータが省略された場合は title 属性に LinkText が指定されます</li>
+			 &lt;a&gt; タグの title 属性を指定します。<br />
+			 LinkText が指定されている時にこのパラメータが省略された場合は title 属性に LinkText が指定されます。</li>
 		</ul>
-		全てのパラメータが省略された場合は、カレントのブログの URL が出力されます
+		全てのパラメータが省略された場合は、カレントのブログの URL が出力されます。
 			<h5><a name="shiyourei" id="shiyourei">使用例</a></h5>
 			<div class="level5">
 				<ul>
@@ -344,33 +344,33 @@ selector<span class="br0">&#40;</span><span class="br0">&#41;</span>;
 		<h4><a name="trackbackurl" id="trackbackurl">トラックバック用 URL 出力(スキン・テンプレート共通)</a></h4>
 		<div class="level4">
 			<pre class="code nucleus"><span class="kw2">&lt;%</span><span class="kw1">CustomURL</span><span class="br0">&#40;</span><span class="re0">trackback</span><span class="br0">&#41;</span><span class="kw2">%&gt;</span></pre>
-			 NP_TrackBack 用のトラックバック URL を出力します<br />
+			 NP_TrackBack 用のトラックバック URL を出力します。<br />
 			 標準では
 			<pre class="code">http://example.com/trackback/item_123.html</pre>
 			ですが、<a href="#customtb" title="CustomURL な 「.trackback」">後述の改造</a>によって
 			<pre class="code">http://example.com/item_123.trackback</pre>
-			に変更する事が出来ます
+			に変更することができます。
 		</div>
 		<h4><a name="entry" id="entry">記事中への記述</a></h4>
 		<div class="level4">
 			<pre class="code nucleus"><span class="kw2">&lt;%</span><span class="kw1">CustomURL</span><span class="br0">&#40;</span><span class="re0">i/12/i</span>,&nbsp;<span class="re0">LinkTest</span>,&nbsp;<span class="re0">LinkTitle</span><span class="br0">&#41;</span><span class="kw2">%&gt;</span></pre>
 			<ul>
 				<li class="level1">第1パラメータ(i/12/i)<br />
-				 リンク先の種類、id、id かリンクネームかの種別を &lsquo;/&rsquo; で区切って記述します<br />
-				 第1パラメータのみの指定の場合、出力は &lt;a href=～&gt; の形ではなく、URL のみの出力となります
+				 リンク先の種類、id、id かリンクネームかの種別を &lsquo;/&rsquo; で区切って記述します。<br />
+				 第1パラメータのみの指定の場合、出力は &lt;a href=～&gt; の形ではなく、URL のみの出力となります。
 					<ul>
-						<li class="level2">数字のみが書かれた場合、itemid として処理されます</li>
-						<li class="level2">3番目が省略された場合は2番目を id として処理します</li>
+						<li class="level2">数字のみが書かれた場合、itemid として処理されます。</li>
+						<li class="level2">3番目が省略された場合は2番目を id として処理します。</li>
 						<li class="level2">アイテムへのリンクに使用できるのは id のみです</li>
 					</ul>
 				</li>
 				<li class="level1">第2パラメータ(LinkText)<br />
 				 リンクを張るテキストを指定します(省略可能)</li>
 				<li class="level1">第3パラメータ(LinkTitle)<br />
-				 &lt;a&gt; タグの title 属性を指定します<br />
-				 LinkText が指定されている時にこのパラメータが省略された場合は title 属性に LinkText が指定されます</li>
+				 &lt;a&gt; タグの title 属性を指定します。<br />
+				 LinkText が指定されている時にこのパラメータが省略された場合は title 属性に LinkText が指定されます。</li>
 			</ul>
-			全てのパラメータが省略された場合は、カレントのアイテムの URL が出力されます
+			全てのパラメータが省略された場合は、カレントのアイテムの URL が出力されます。
 		</div>
 	</div>
 
@@ -387,7 +387,7 @@ selector<span class="br0">&#40;</span><span class="br0">&#41;</span>;
 				 仮想メンバーディレクトリの名前</li>
 				<li class="level1">新規作成時のアイテムのURIの接頭語<br />
 				 アイテムのリンク名にデフォルトで付く文字列<br />
-				 <span class="nucleus"><span class="kw2">&lt;%</span><span class="kw1">year</span><span class="kw2">%&gt;</span></span>、<span class="nucleus"><span class="kw2">&lt;%</span><span class="kw1">month</span><span class="kw2">%&gt;</span></span>、<span class="nucleus"><span class="kw2">&lt;%</span><span class="kw1">day</span><span class="kw2">%&gt;</span></span>を使用して、投稿された年月日を使用することが出来ます</li>
+				 <span class="nucleus"><span class="kw2">&lt;%</span><span class="kw1">year</span><span class="kw2">%&gt;</span></span>、<span class="nucleus"><span class="kw2">&lt;%</span><span class="kw1">month</span><span class="kw2">%&gt;</span></span>、<span class="nucleus"><span class="kw2">&lt;%</span><span class="kw1">day</span><span class="kw2">%&gt;</span></span>を使用して、投稿された年月日を使用することが出来ます。</li>
 				<li class="level1">新規作成時のカテゴリーのURIの接頭語<br />
 				 カテゴリーのリンク名にデフォルトで付く文字列</li>
 				<li class="level1">新規作成時のサブカテゴリーのURIの接頭語<br />
@@ -461,7 +461,7 @@ selector<span class="br0">&#40;</span><span class="br0">&#41;</span>;
 					<span class="kw1">break</span>;
 			<span class="br0">&#125;</span></pre>
 		 の部分も、上で書き換えたものに対応させる形で書き換えます スキン名を変更する場合はこの部分を書き換えてください
-		これ変える人あまり居ないと思ったんで決め打ちにしちゃってます
+		これ変える人あまり居ないと思ったんで決め打ちにしちゃってます。
 		</div>
 		<h4><a name="otherplugin" id="otherplugin">他プラグインへの対応</a></h4>
 		<div class="level4">
@@ -480,12 +480,12 @@ selector<span class="br0">&#40;</span><span class="br0">&#41;</span>;
 <pre class="code php">		<span class="kw1">switch</span><span class="br0">&#40;</span><span class="kw2">TRUE</span><span class="br0">&#41;</span> <span class="br0">&#123;</span>
 		<span class="kw1">case</span> <span class="br0">&#40;</span><span class="re0">$manager</span>-&gt;<span class="me1">pluginInstalled</span><span class="br0">&#40;</span><span class="st0">'NP_CustomURL'</span><span class="br0">&#41;</span><span class="br0">&#41;</span>:
 		<span class="kw1">case</span> <span class="br0">&#40;</span><span class="re0">$past</span> == <span class="st0">'+'</span><span class="br0">&#41;</span>:</pre>
-				 に変更することで、正常に URL が出力されます
+				 に変更することで、正常に URL が出力されます。
 			</div>
 			<h5><a name="np_contentlist" id="np_contentlist">NP_ContentList</a></h5>
 			<div class="level5">
 				こちらも URL 出力を正常にする変更<br />
-				 このプラグインは、独自に URL を生成しているので、ここをグローバルファンクションを使用するように書き換えます<br />
+				 このプラグインは、独自に URL を生成しているので、ここをグローバルファンクションを使用するように書き換えます。<br />
 				 「function doSkinVar()」内の467行目からの
 <pre class="code php"><span class="co1">// sub category --- </span></pre>
 				で括られているブロックの486行目
@@ -515,14 +515,14 @@ selector<span class="br0">&#40;</span><span class="br0">&#41;</span>;
 <pre class="code php">creatTagLink<span class="br0">&#40;</span><span class="br0">&#41;</span></pre>
  				の最後の
 <pre class="code php"><span class="kw1">return</span> addLinkParams<span class="br0">&#40;</span><span class="re0">$link</span>, <span class="re0">$linkparams</span><span class="br0">&#41;</span>;</pre>
-				の直前に、次のコードを挿入します
+				の直前に、次のコードを挿入します。
 <pre class="code php"><a href="http://www.php.net/global"><span class="kw3">global</span></a> <span class="re0">$manager</span>;
 <span class="kw1">if</span> <span class="br0">&#40;</span><span class="re0">$manager</span>-&gt;<span class="me1">pluginInstalled</span><span class="br0">&#40;</span><span class="st0">'NP_CustomURL'</span><span class="br0">&#41;</span><span class="br0">&#41;</span> <span class="br0">&#123;</span>
     <span class="re0">$customurls</span> = <span class="re0">$manager</span>-&gt;<span class="me1">getPlugin</span><span class="br0">&#40;</span><span class="st0">'NP_CustomURL'</span><span class="br0">&#41;</span>;
     <span class="re0">$link</span> = <span class="st0">'tag/'</span> . <span class="re0">$ready</span> . <span class="re0">$sep</span> . <span class="re0">$this</span>-&gt;_rawencode<span class="br0">&#40;</span><span class="re0">$tag</span><span class="br0">&#41;</span>;
     <span class="kw1">return</span> <span class="re0">$CONF</span><span class="br0">&#91;</span><span class="st0">'BlogURL'</span><span class="br0">&#93;</span> . <span class="st0">'/'</span> . <span class="re0">$customurls</span>-&gt;_addLinkParams<span class="br0">&#40;</span><span class="re0">$link</span>, <span class="re0">$linkparams</span><span class="br0">&#41;</span> . <span class="st0">'/'</span>;
 <span class="br0">&#125;</span></pre>
-				これでタグがURLの一番最後になります
+				これでタグがURLの一番最後になります。
 			</div>
 			<h5><a name="np_trackback" id="np_trackback">NP_TrackBack</a></h5>
 			<div class="level5">
@@ -536,7 +536,7 @@ selector<span class="br0">&#40;</span><span class="br0">&#41;</span>;
 				と
 <pre class="code php">		<span class="kw1">if</span> <span class="br0">&#40;</span><span class="br0">&#40;</span>!<span class="re0">$manager</span>-&gt;<span class="me1">existsItem</span><span class="br0">&#40;</span><span class="re0">$tb_id</span>,<span class="nu0">0</span>,<span class="nu0">0</span><span class="br0">&#41;</span><span class="br0">&#41;</span> &amp;&amp; <span class="br0">&#40;</span><span class="re0">$this</span>-&gt;<span class="me1">getOption</span><span class="br0">&#40;</span><span class="st0">'CheckIDs'</span><span class="br0">&#41;</span> == <span class="st0">'yes'</span><span class="br0">&#41;</span><span class="br0">&#41;</span>
 			<span class="kw1">return</span> _ERROR_NOSUCHITEM . <span class="st0">"[ $tb_id ]"</span>;</pre>
-				の間に、次のコードを挿入します
+				の間に、次のコードを挿入します。
 <pre class="code php">		<span class="kw1">if</span> <span class="br0">&#40;</span><span class="re0">$manager</span>-&gt;<span class="me1">pluginInstalled</span><span class="br0">&#40;</span><span class="st0">'NP_CustomURL'</span><span class="br0">&#41;</span><span class="br0">&#41;</span> <span class="br0">&#123;</span>
 
 			<span class="re0">$plugin</span> =&amp; <span class="re0">$manager</span>-&gt;<span class="me1">getPlugin</span><span class="br0">&#40;</span><span class="st0">'NP_CustomURL'</span><span class="br0">&#41;</span>;
@@ -566,10 +566,10 @@ selector<span class="br0">&#40;</span><span class="br0">&#41;</span>;
 			<span class="br0">&#125;</span>
 
 		<span class="br0">&#125;</span></pre>
-				 「/trackback/item_123.html」「/item_123.trackback」の両方に対応できます
+				 「/trackback/item_123.html」「/item_123.trackback」の両方に対応できます。
 				<h6><a name="customtb" id="customtb">CustomURL な 「.trackback」</a></h6>
 				<div class="level6">
-					NP_CustomURL.php の 1127～1128行目と、1166～1167行目のコメントアウトをはずせば、<span class="nucleus"><span class="kw2">&lt;%</span><span class="kw1">CustomURL</span><span class="br0">&#40;</span><span class="re0">trackback</span><span class="br0">&#41;</span><span class="kw2">%&gt;</span></span>と記述した時に出力される URL が「item_123.trackback」に出来ます
+					NP_CustomURL.php の 1127～1128行目と、1166～1167行目のコメントアウトをはずせば、<span class="nucleus"><span class="kw2">&lt;%</span><span class="kw1">CustomURL</span><span class="br0">&#40;</span><span class="re0">trackback</span><span class="br0">&#41;</span><span class="kw2">%&gt;</span></span>と記述した時に出力される URL が「item_123.trackback」に出来ます。
 				</div>
 			</div>
 		</div>
