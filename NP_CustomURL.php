@@ -2390,7 +2390,8 @@ OUTPUT;
 			$param['year']           = sprintf('%04d', $y);
 			$param['month']          = sprintf('%02d', $m);
 			$param['day']            = sprintf('%02d', $d);
-			$ikey = TEMPLATE::fill($template, $param); 
+			$dfItem   = $this->getOption('customurl_dfitem');
+			$ikey = TEMPLATE::fill($dfItem, $param); 
 				if ($path == $ikey) {
 					$path = $ikey . '_' . $objID;
 				}
