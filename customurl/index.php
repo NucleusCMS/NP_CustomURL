@@ -22,7 +22,7 @@
 
 	if (!($member->isLoggedIn() && $member->isAdmin())) {
 		ACTIONLOG::add(WARNING, _ACTIONLOG_DISALLOWED . serverVar('REQUEST_URI'));
-		$myAdmin->error(_ERROR_DISALLOWED);
+		$myAdmin->error(_CURL_ERROR_DISALLOWED);
 	}
 
 class CustomURL_ADMIN
@@ -80,7 +80,7 @@ class CustomURL_ADMIN
 	{
 
 		ACTIONLOG::add(WARNING, _ACTIONLOG_DISALLOWED . serverVar('REQUEST_URI'));
-		$msg = array (0, _ERROR_DISALLOWED, '***', _DISALLOWED_MSG);
+		$msg = array (0, _CURL_ERROR_DISALLOWED, '***', _DISALLOWED_MSG);
 		$this->error($msg);
 	}
 

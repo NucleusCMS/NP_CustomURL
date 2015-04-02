@@ -51,7 +51,7 @@
 // Admin area
 	define('_ADMIN_TITLE',			'URL CUSTOMIZE');
 	define('_QUICK_TIPS',			'Manage link URI');
-	define('_ERROR_DISALLOWED',		'Access denied.');
+	define('_CURL_ERROR_DISALLOWED',		'Access denied.');
 	define('_DISALLOWED_MSG',		'You do not log in or have the permission.');
 	define('_ADMIN_AREA_TITLE',		'Manage link URI');
 	define('_OPTION_SETTING',		'Back to option setting');

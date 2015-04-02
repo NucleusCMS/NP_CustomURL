@@ -51,7 +51,7 @@
 // Admin area
 	define('_ADMIN_TITLE',			'URL CUSTOMIZE');
 	define('_QUICK_TIPS',			'リンク表示用 URI の管理');
-	define('_ERROR_DISALLOWED',		'アクセスできません');
+	define('_CURL_ERROR_DISALLOWED',		'アクセスできません');
 	define('_DISALLOWED_MSG',		'ログインしていないか、または管理者権限がありません');
 	define('_ADMIN_AREA_TITLE',		'リンク表示用 URI の管理ページ');
 	define('_OPTION_SETTING',		'このプラグインのオプション設定ページへ移動');
