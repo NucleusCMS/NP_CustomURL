@@ -1,22 +1,6 @@
 <?php
-	include('../../../config.php');
 	$language = str_replace( array('\\','/'), '', getLanguageName());
-	$url = './'.$language.'_help.html';
-	if(is_file($url)){
-		$message=file($url);
-	}
-	else{
-		$message=file('./default_help.html');
-	}
-	$linenumber=sizeof($message);
-	$i=0;
-	while($i<$linenumber){
-		$message[$i] = trim($message[$i], "\n\0\r");
-		$message[$i] = str_replace("'", "\\'", $message[$i]);
-		$message[$i] = str_replace('&', '\\&', $message[$i]);
-		$message[$i] = str_replace('"', '\\"', $message[$i]);
-		$message[$i] = str_replace('/', '\\/', $message[$i]);
-		$message[$i] = str_replace('    ', '\\&nbsp;\\&nbsp;\\&nbsp;\\&nbsp;', $message[$i]);
-		echo ("document.write('{$message[$i]}\\n');");
-		$i++;
-	}
+	$plugin_path = str_replace('\\','/',dirname(__FILE__)) . '/';
+	$help_path = "{$plugin_path}{$language}_help.html";
+	if(is_file($help_path)) echo file_get_contents($help_path);
+	else              echo file_get_contents('default_help.html');
