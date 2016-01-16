@@ -23,7 +23,7 @@ class NP_CustomURL extends NucleusPlugin
 	function getName()              { return 'Customized URL';}
 	function getAuthor()            { return 'shizuki + nekonosippo + Cacher + Reine';}
 	function getURL()               { return 'http://japan.nucleuscms.org/wiki/plugins:customurl';}
-	function getVersion()           { return '0.3.8';}
+	function getVersion()           { return '0.3.8-fix1';}
 	function getDescription()       { return _DESCRIPTION;}
 	function hasAdminArea()         { return 1;}
 	function getTableList()         { return array(_CUSTOMURL_TABLE);}
@@ -1928,7 +1928,14 @@ class NP_CustomURL extends NucleusPlugin
 			}
 			if (SKIN::exists($skinName)) {
 				$skin =& SKIN::createFromName($skinName);
-				$data['skin']->SKIN($skin->getID());
+//				$data['skin']->SKIN($skin->getID());
+// 2015-12-31 http://japan.nucleuscms.org/forum/viewtopic.php?pid=30950#p30950
+				if(method_exists($data['skin'], "SKIN")) {
+					$data['skin']->SKIN($skin->getID());
+				}
+				else {
+					$data['skin']->__construct($skin->getID());
+				}
 				$skinData =& $data['skin'];
 				$pageType =  $data['type'];
 				if (!$CONF['DisableSite']) {
