@@ -1928,14 +1928,15 @@ class NP_CustomURL extends NucleusPlugin
 					break;
 			}
 			if (SKIN::exists($skinName)) {
-				$skin =& SKIN::createFromName($skinName);
-//				$data['skin']->SKIN($skin->getID());
-// 2015-12-31 http://japan.nucleuscms.org/forum/viewtopic.php?pid=30950#p30950
-				if(method_exists($data['skin'], "SKIN")) {
-					$data['skin']->SKIN($skin->getID());
-				}
-				else {
-					$data['skin']->__construct($skin->getID());
+				if(method_exists($data['skin'], "changeSkinByName")) {
+					$data['skin']->changeSkinByName($skinName);
+				} else {
+					$newSkinId = SKIN::getIdFromName($skinName);
+					if(method_exists($data['skin'], "SKIN")) {
+						$data['skin']->SKIN($newSkinId);
+					} else {
+						$data['skin']->__construct($newSkinId);
+					}
 				}
 				$skinData =& $data['skin'];
 				$pageType =  $data['type'];
