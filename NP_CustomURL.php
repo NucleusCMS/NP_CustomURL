@@ -1014,6 +1014,7 @@ class NP_CustomURL extends NucleusPlugin
 
 	function goNP_ExtraSkinJP()
 	{
+        global $CONF;
 		$ExtraSkinJP = $this->pluginCheck('ExtraSkinJP');
 		// under v3.2 needs this
 		if ($CONF['DisableSite'] && !$member->isAdmin()) {
@@ -1899,7 +1900,7 @@ class NP_CustomURL extends NucleusPlugin
 
 	function event_InitSkinParse($data)
 	{
-		global $blogid, $CONF, $manager;
+		global $blogid, $CONF, $manager, $nucleus;
 		$feedurl = array(
 						 'rss1.xml',
 						 'index.rdf',
