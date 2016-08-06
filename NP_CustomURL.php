@@ -452,7 +452,7 @@ class NP_CustomURL extends NucleusPlugin
 		if ($blog_id) {
 			$blogid = $blog_id;
 			$trush  = array_shift($v_path);
-			$bLink  = TURE;
+			$bLink  = TRUE;
 		}
 		if ($useCustomURL[$blogid] == 'no') {
 			return;
@@ -1147,7 +1147,7 @@ class NP_CustomURL extends NucleusPlugin
 							sscanf($itime,'%d-%d-%d %s', $y, $m, $d, $temp);
 							$defItem   = $this->getOption('customurl_dfitem');
 							$tempParam = array(
-											   'year'  => $Y,
+											   'year'  => $y,
 											   'month' => $m,
 											   'day'   => $d
 											  );
