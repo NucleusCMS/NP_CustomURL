@@ -282,7 +282,7 @@ class CustomURL_ADMIN
 		$query = sprintf($query, mname, mnumber, mrealname, sql_table('member'));
 		$res   = sql_query($query);
 		while ($m = mysql_fetch_object($res)) {
-			$mPpath = $this->_hsc($this->plugin->getMemberOption($m->mnumber, 'customurl_mname'));
+			$mPath = $this->_hsc($this->plugin->getMemberOption($m->mnumber, 'customurl_mname'));
 			$data  = array (
 						    'oid'    => intval($m->mnumber),
 						    'obd'    => 0,

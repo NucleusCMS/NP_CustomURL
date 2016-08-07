@@ -452,7 +452,7 @@ class NP_CustomURL extends NucleusPlugin
 		if ($blog_id) {
 			$blogid = $blog_id;
 			$trush  = array_shift($v_path);
-			$bLink  = TURE;
+			$bLink  = TRUE;
 		}
 		if ($useCustomURL[$blogid] == 'no') {
 			return;
@@ -1014,6 +1014,7 @@ class NP_CustomURL extends NucleusPlugin
 
 	function goNP_ExtraSkinJP()
 	{
+        global $CONF;
 		$ExtraSkinJP = $this->pluginCheck('ExtraSkinJP');
 		// under v3.2 needs this
 		if ($CONF['DisableSite'] && !$member->isAdmin()) {
@@ -1146,7 +1147,7 @@ class NP_CustomURL extends NucleusPlugin
 							sscanf($itime,'%d-%d-%d %s', $y, $m, $d, $temp);
 							$defItem   = $this->getOption('customurl_dfitem');
 							$tempParam = array(
-											   'year'  => $Y,
+											   'year'  => $y,
 											   'month' => $m,
 											   'day'   => $d
 											  );
@@ -1899,7 +1900,7 @@ class NP_CustomURL extends NucleusPlugin
 
 	function event_InitSkinParse($data)
 	{
-		global $blogid, $CONF, $manager;
+		global $blogid, $CONF, $manager, $nucleus;
 		$feedurl = array(
 						 'rss1.xml',
 						 'index.rdf',
@@ -1927,14 +1928,15 @@ class NP_CustomURL extends NucleusPlugin
 					break;
 			}
 			if (SKIN::exists($skinName)) {
-				$skin =& SKIN::createFromName($skinName);
-//				$data['skin']->SKIN($skin->getID());
-// 2015-12-31 http://japan.nucleuscms.org/forum/viewtopic.php?pid=30950#p30950
-				if(method_exists($data['skin'], "SKIN")) {
-					$data['skin']->SKIN($skin->getID());
-				}
-				else {
-					$data['skin']->__construct($skin->getID());
+				if(method_exists($data['skin'], "changeSkinByName")) {
+					$data['skin']->changeSkinByName($skinName);
+				} else {
+					$newSkinId = SKIN::getIdFromName($skinName);
+					if(method_exists($data['skin'], "SKIN")) {
+						$data['skin']->SKIN($newSkinId);
+					} else {
+						$data['skin']->__construct($newSkinId);
+					}
 				}
 				$skinData =& $data['skin'];
 				$pageType =  $data['type'];
