@@ -7,6 +7,8 @@
 	// edit this variable to point to your site directory
 	// (where config.php is)
 	$strRel = '../../../';
+    if (!is_file($strRel.'config.php') && is_file($strRel.'../config.php'))
+        $strRel .= '../';
 
 	include($strRel . 'config.php');
 	include($DIR_LIBS . 'PLUGINADMIN.php');
