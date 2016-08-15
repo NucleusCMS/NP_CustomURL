@@ -127,19 +127,18 @@ class NP_CustomURL extends NucleusPlugin
 //Plugins sort
 		$plugTable = sql_table('plugin');
 		$myid      = intval($this->getID());
-		$res       = sql_query('SELECT pid, porder FROM ' . $plugTable);
-		while ($p = sql_fetch_array($res)) {
-			$updateQuery = 'UPDATE %s '
-						 . 'SET    porder = %d '
-						 . 'WHERE  pid    = %d';
-			if (($pid = intval($p['pid'])) == $myid) {
-				$q      = sprintf($updateQuery, $plugTable, 1, $myid);
-				sql_query($q);
-			} else {
-				$porder = intval($p['porder']);
-				$q      = sprintf($updateQuery, $plugTable, $porder + 1, $pid);
-				sql_query($q);
+		$myorder   = intval(quickQuery('SELECT porder as result FROM ' . $plugTable . " WHERE pid = ". $myid));
+		$minorder  = intval(quickQuery('SELECT porder as result FROM ' . $plugTable . " ORDER BY porder ASC LIMIT 1"));
+		if ($myorder != $minorder || $myorder >1)
+		{
+			if ($minorder <= 1)
+			{
+				$inc = (($minorder < 0) ? abs($minorder) : 1);
+				$updateQuery = sprintf('UPDATE %s SET porder = porder+%d WHERE porder < %d', $plugTable, $inc, $myorder+$inc-1);
+				sql_query($updateQuery);
 			}
+			$updateQuery = sprintf('UPDATE %s SET porder = 1 WHERE pid = %d', $plugTable, $myid);
+			sql_query($updateQuery);
 		}
 
 //create plugin's options and set default value
