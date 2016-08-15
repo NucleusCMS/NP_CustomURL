@@ -33,6 +33,7 @@ class NP_CustomURL extends NucleusPlugin
 			case 'SqlTablePrefix':
 			case 'HelpPage':
 			case 'SqlApi':
+			case 'SqlApi_sqlite':
 				return 1;
 			default:
 				return 0;
@@ -200,6 +201,16 @@ class NP_CustomURL extends NucleusPlugin
 			 . ' `obj_bid` INT(11) NOT NULL,'
 			 . ' INDEX (`obj_name`)'
 			 . ' )';
+		global $MYSQL_HANDLER;
+		if ((isset($this->is_db_sqlite) && $this->is_db_sqlite) || in_array('sqlite', $MYSQL_HANDLER))
+		{
+			$sql = str_replace("INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY", "INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL", $sql);
+			$sql = preg_replace("#,\s+INDEX .+$#ims", ");", $sql);
+			$res = sql_query($sql);
+			if ($res === FALSE)
+				addToLog (ERROR, 'NP_CustomURL : failed to create the table ' . _CUSTOMURL_TABLE);
+			$sql = sprintf('CREATE INDEX IF NOT EXISTS `%s_idx_obj_name` on `%s` (`obj_name`);', _CUSTOMURL_TABLE, _CUSTOMURL_TABLE);
+		}
 		sql_query($sql);
 
 //setting default aliases
