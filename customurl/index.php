@@ -30,7 +30,7 @@
 class CustomURL_ADMIN
 {
 
-	function CustomURL_ADMIN()
+	function __construct()
 	{
 		global $manager, $CONF, $oPluginAdmin;
 		$this->plugin   =& $oPluginAdmin->plugin;
