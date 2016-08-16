@@ -23,7 +23,7 @@ class NP_CustomURL extends NucleusPlugin
 	function getName()              { return 'Customized URL';}
 	function getAuthor()            { return 'shizuki + nekonosippo + Cacher + Reine';}
 	function getURL()               { return 'http://japan.nucleuscms.org/wiki/plugins:customurl';}
-	function getVersion()           { return '0.3.8-fix1';}
+	function getVersion()           { return '0.4.0';}
 	function getDescription()       { return _DESCRIPTION;}
 	function hasAdminArea()         { return 1;}
 	function getTableList()         { return array(_CUSTOMURL_TABLE);}
@@ -33,6 +33,7 @@ class NP_CustomURL extends NucleusPlugin
 			case 'SqlTablePrefix':
 			case 'HelpPage':
 			case 'SqlApi':
+			case 'SqlApi_sqlite':
 				return 1;
 			default:
 				return 0;
@@ -126,19 +127,18 @@ class NP_CustomURL extends NucleusPlugin
 //Plugins sort
 		$plugTable = sql_table('plugin');
 		$myid      = intval($this->getID());
-		$res       = sql_query('SELECT pid, porder FROM ' . $plugTable);
-		while ($p = sql_fetch_array($res)) {
-			$updateQuery = 'UPDATE %s '
-						 . 'SET    porder = %d '
-						 . 'WHERE  pid    = %d';
-			if (($pid = intval($p['pid'])) == $myid) {
-				$q      = sprintf($updateQuery, $plugTable, 1, $myid);
-				sql_query($q);
-			} else {
-				$porder = intval($p['porder']);
-				$q      = sprintf($updateQuery, $plugTable, $porder + 1, $pid);
-				sql_query($q);
+		$myorder   = intval(quickQuery('SELECT porder as result FROM ' . $plugTable . " WHERE pid = ". $myid));
+		$minorder  = intval(quickQuery('SELECT porder as result FROM ' . $plugTable . " ORDER BY porder ASC LIMIT 1"));
+		if ($myorder != $minorder || $myorder >1)
+		{
+			if ($minorder <= 1)
+			{
+				$inc = (($minorder < 0) ? abs($minorder) : 1);
+				$updateQuery = sprintf('UPDATE %s SET porder = porder+%d WHERE porder < %d', $plugTable, $inc, $myorder+$inc-1);
+				sql_query($updateQuery);
 			}
+			$updateQuery = sprintf('UPDATE %s SET porder = 1 WHERE pid = %d', $plugTable, $myid);
+			sql_query($updateQuery);
 		}
 
 //create plugin's options and set default value
@@ -200,6 +200,16 @@ class NP_CustomURL extends NucleusPlugin
 			 . ' `obj_bid` INT(11) NOT NULL,'
 			 . ' INDEX (`obj_name`)'
 			 . ' )';
+		global $MYSQL_HANDLER;
+		if ((isset($this->is_db_sqlite) && $this->is_db_sqlite) || in_array('sqlite', $MYSQL_HANDLER))
+		{
+			$sql = str_replace("INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY", "INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL", $sql);
+			$sql = preg_replace("#,\s+INDEX .+$#ims", ");", $sql);
+			$res = sql_query($sql);
+			if ($res === FALSE)
+				addToLog (ERROR, 'NP_CustomURL : failed to create the table ' . _CUSTOMURL_TABLE);
+			$sql = sprintf('CREATE INDEX IF NOT EXISTS `%s_idx_obj_name` on `%s` (`obj_name`);', _CUSTOMURL_TABLE, _CUSTOMURL_TABLE);
+		}
 		sql_query($sql);
 
 //setting default aliases
@@ -221,7 +231,7 @@ class NP_CustomURL extends NucleusPlugin
 		$createQuery = 'CREATE TABLE %s '
 					 . 'SELECT       obj_id, obj_param '
 					 . 'FROM         %s '
-					 . 'WHERE        obj_param = "%s"';
+					 . "WHERE        obj_param = '%s'";
 		sql_query(sprintf($createQuery, $tmpTable, _CUSTOMURL_TABLE, $type));
 		$TmpQuery    = 'SELECT    %s, %s '
 					 . 'FROM      %s as ttb '
@@ -276,7 +286,7 @@ class NP_CustomURL extends NucleusPlugin
 				}
 				$insertQuery = 'INSERT INTO %s '
 							 . '(obj_param, obj_id, obj_name, obj_bid) '
-							 . 'VALUES ("%s", %d, "%s", %d)';
+							 . "VALUES ('%s', %d, '%s', %d)";
 				$row[$id]    = intval($row[$id]);
 				$blgid       = intval($blgid);
 				sql_query(sprintf($insertQuery, _CUSTOMURL_TABLE, $type, $row[$id], $newPath, $blgid));
@@ -284,7 +294,7 @@ class NP_CustomURL extends NucleusPlugin
 		}
 		$query = 'SELECT obj_id, obj_name '
 			   . 'FROM %s '
-			   . 'WHERE obj_param = "%s"';
+			   . "WHERE obj_param = '%s'";
 		$temp  = sql_query(sprintf($query, _CUSTOMURL_TABLE, $type));
 		while ($row = sql_fetch_array($temp)) {
 			$name = $row['obj_name'];
@@ -1037,9 +1047,9 @@ class NP_CustomURL extends NucleusPlugin
 	{
 		$query     = 'SELECT obj_id as result'
 				   . ' FROM %s'
-				   . ' WHERE obj_name  = "%s"'
+				   . " WHERE obj_name  = '%s'"
 				   . ' AND   obj_bid   = %d'
-				   . ' AND   obj_param = "%s"';
+				   . " AND   obj_param = '%s'";
 		$name      = $this->quote_smart($linkObj['name']);
 		$bid       = $this->quote_smart($linkObj['bid']);
 		$linkparam = $this->quote_smart($linkObj['linkparam']);
@@ -1331,7 +1341,7 @@ class NP_CustomURL extends NucleusPlugin
 			$query     = 'SELECT obj_name as result'
 					   . ' FROM         %s'
 					   . ' WHERE    obj_id = %d'
-					   . ' AND   obj_param = "%s"';
+					   . " AND   obj_param = '%s'";
 			$query     = sprintf($query, _CUSTOMURL_TABLE, $subcat_id, 'subcategory');
 			$path      = quickQuery($query);
 			if ($path) {
@@ -1459,7 +1469,7 @@ class NP_CustomURL extends NucleusPlugin
 	{
 		$blogid      = intval($blogid);
 		$burl_update = 'UPDATE %s '
-					 . 'SET    burl = "%s" '
+					 . "SET    burl = '%s' "
 					 . 'WHERE  bnumber = %d';
 		$burl        = $this->quote_smart($burl);
 		$bTable      = sql_table('blog');
@@ -1749,7 +1759,7 @@ class NP_CustomURL extends NucleusPlugin
 		if ($CONF['URLMode'] != 'pathinfo') {
 			return;
 		}
-		$query = 'SELECT %s as result FROM %s WHERE %s = "%s"';
+		$query = "SELECT %s as result FROM %s WHERE %s = '%s'";
 		switch ($data[0]) {
 			case 'b':
 				if ($data[2] == 'n') {
@@ -2147,8 +2157,8 @@ class NP_CustomURL extends NucleusPlugin
 
 	function event_PostDeleteBlog ($data)
 	{
-		$query    = 'DELETE FROM %s WHERE obj_id = %d AND obj_param = "%s"';
-		$pquery   = 'DELETE FROM %s WHERE obj_bid = %d AND obj_param= "%s"';
+		$query    = "DELETE FROM %s WHERE obj_id = %d AND obj_param = '%s'";
+		$pquery   = "DELETE FROM %s WHERE obj_bid = %d AND obj_param= '%s'";
 		$blogid   = intval($data['blogid']);
 		sql_query(sprintf($query, _CUSTOMURL_TABLE, $blogid, 'blog'));
 		sql_query(sprintf($pquery, _CUSTOMURL_TABLE, $blogid, 'item'));
@@ -2164,8 +2174,8 @@ class NP_CustomURL extends NucleusPlugin
 
 	function event_PostDeleteCategory ($data)
 	{
-		$query  = 'DELETE FROM %s WHERE obj_id = %d AND obj_param = "%s"';
-		$squery = 'DELETE FROM %s WHERE obj_bid = %d AND obj_param = "%s"';
+		$query  = "DELETE FROM %s WHERE obj_id = %d AND obj_param = '%s'";
+		$squery = "DELETE FROM %s WHERE obj_bid = %d AND obj_param = '%s'";
 		$catid  = intval($data['catid']);
 		sql_query(sprintf($query, _CUSTOMURL_TABLE, $catid, 'category'));
 		sql_query(sprintf($squery, _CUSTOMURL_TABLE, $catid, 'subcategory'));
@@ -2173,14 +2183,14 @@ class NP_CustomURL extends NucleusPlugin
 
 	function event_PostDeleteItem ($data)
 	{
-		$query  = 'DELETE FROM %s WHERE obj_id = %d AND obj_param = "%s"';
+		$query  = "DELETE FROM %s WHERE obj_id = %d AND obj_param = '%s'";
 		$itemid = intval($data['itemid']);
 		sql_query(sprintf($query, _CUSTOMURL_TABLE, $itemid, 'item'));
 	}
 
 	function event_PostDeleteMember ($data)
 	{
-		$query    = 'DELETE FROM %s WHERE obj_id = %d AND obj_param = "%s"';
+		$query    = "DELETE FROM %s WHERE obj_id = %d AND obj_param = '%s'";
 		$memberid = intval($data['member']->id);
 		sql_query(sprintf($query, _CUSTOMURL_TABLE, $memberid, 'member'));
 	}
@@ -2346,7 +2356,7 @@ OUTPUT;
 	function event_PostMoveItem($data)
 	{
 		$query      = 'UPDATE %s SET obj_bid = %d'
-					. ' WHERE obj_param = "%s" AND obj_id = %d';
+					. " WHERE obj_param = '%s' AND obj_id = %d";
 		$destblogid = intval($data['destblogid']);
 		$item_id    = intval($data['itemid']);
 		sql_query(sprintf($query, _CUSTOMURL_TABLE, $destblogid, 'item', $item_id));
@@ -2355,7 +2365,7 @@ OUTPUT;
 	function event_PostMoveCategory($data)
 	{
 		$query      = 'UPDATE %s SET obj_bid = %d'
-					. ' WHERE obj_param = "%s" AND obj_id = %d';
+					. " WHERE obj_param = '%s' AND obj_id = %d";
 		$destblogid = intval($data['destblog']->blogid);
 		$cat_id     = intval($data['catid']);
 		sql_query(sprintf($query, _CUSTOMURL_TABLE, $destblogid, 'category', $cat_id));
@@ -2405,7 +2415,7 @@ OUTPUT;
 					$path = $ikey . '_' . $objID;
 				}
 		} elseif (!$new && strlen($path) == 0) {
-			$del_que = 'DELETE FROM %s WHERE obj_id = %d AND obj_param = "%s"';
+			$del_que = "DELETE FROM %s WHERE obj_id = %d AND obj_param = '%s'";
 			sql_query(sprintf($del_que, _CUSTOMURL_TABLE, $objID, $oParam));
 			$msg = array (0, _DELETE_PATH, $name, _DELETE_MSG);
 			return $msg;
@@ -2423,9 +2433,9 @@ OUTPUT;
 		$tempPath = $path;
 		if ($oParam == 'item' || $oParam == 'member') $tempPath .= '.html';
 		$conf_que = 'SELECT obj_id FROM %s'
-				  . ' WHERE obj_name = "%s"'
+				  . " WHERE obj_name = '%s'"
 				  . ' AND    obj_bid = %d'
-				  . ' AND  obj_param = "%s"'
+				  . " AND  obj_param = '%s'"
 				  . ' AND    obj_id != %d';
 		$res = sql_query(sprintf($conf_que, _CUSTOMURL_TABLE, $tempPath, $bid, $oParam, $objID));
 		if ($res && sql_num_rows($res)) {
@@ -2433,7 +2443,7 @@ OUTPUT;
 			$path .= '_'.$objID;
 		}
 		if ($oParam == 'category' && !$msg) {
-			$conf_cat = 'SELECT obj_id FROM %s WHERE obj_name = "%s"'
+			$conf_cat = "SELECT obj_id FROM %s WHERE obj_name = '%s'"
 					  . ' AND obj_param = "blog"';
 			$res = sql_query(sprintf($conf_cat, _CUSTOMURL_TABLE, $tempPath));
 			if ($res && sql_num_rows($res)) {
@@ -2442,7 +2452,7 @@ OUTPUT;
 			}
 		}
 		if ($oParam == 'blog' && !$msg) {
-			$conf_blg = 'SELECT obj_id FROM %s WHERE obj_name = "%s"'
+			$conf_blg = "SELECT obj_id FROM %s WHERE obj_name = '%s'"
 					  . ' AND obj_param = "category"';
 			$res = sql_query(sprintf($conf_blg, _CUSTOMURL_TABLE, $tempPath));
 			if ($res && sql_num_rows($res)) {
@@ -2453,16 +2463,16 @@ OUTPUT;
 
 		$newPath = $path;
 		if ($oParam == 'item' || $oParam == 'member') $newPath .= '.html';
-		$query = 'SELECT * FROM %s WHERE obj_id = %d AND obj_param = "%s"';
+		$query = "SELECT * FROM %s WHERE obj_id = %d AND obj_param = '%s'";
 		$res = sql_query(sprintf($query, _CUSTOMURL_TABLE, $objID, $oParam));
 		$row = sql_fetch_object($res);
 		$pathID = $row->id;
 		if ($pathID) {
-			$query = 'UPDATE %s SET obj_name = "%s" WHERE id = %d';
+			$query = "UPDATE %s SET obj_name = '%s' WHERE id = %d";
 			sql_query(sprintf($query, _CUSTOMURL_TABLE, $newPath, $pathID));
 		} else {
 			$query = 'INSERT INTO %s (obj_param, obj_name, obj_id, obj_bid)'
-				   . ' VALUES ("%s", "%s", %d, %d)';
+				   . " VALUES ('%s', '%s', %d, %d)";
 			sql_query(sprintf($query, _CUSTOMURL_TABLE, $oParam, $newPath, $objID, $bid));
 		}
 		switch($oParam) {

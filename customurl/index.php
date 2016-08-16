@@ -7,6 +7,8 @@
 	// edit this variable to point to your site directory
 	// (where config.php is)
 	$strRel = '../../../';
+    if (!is_file($strRel.'config.php') && is_file($strRel.'../config.php'))
+        $strRel .= '../';
 
 	include($strRel . 'config.php');
 	include($DIR_LIBS . 'PLUGINADMIN.php');
@@ -28,7 +30,7 @@
 class CustomURL_ADMIN
 {
 
-	function CustomURL_ADMIN()
+	function __construct()
 	{
 		global $manager, $CONF, $oPluginAdmin;
 		$this->plugin   =& $oPluginAdmin->plugin;
@@ -124,7 +126,7 @@ class CustomURL_ADMIN
 		$query = 'SELECT %s,%s,%s FROM %s';
 		$query = sprintf($query, bname, bnumber, bshortname, sql_table('blog'));
 		$res   = sql_query($query);
-		while ($b = mysql_fetch_object($res)) {
+		while ($b = sql_fetch_object($res)) {
 //			$forCatURI  = $this->adminurl . 'index.php?action=goCategory&amp;blogid=' . $b->bnumber;
 			$forCatURI  = $this->adminurl . 'index.php?action=categoryview&amp;blogid=' . $b->bnumber;
 //			$forItemURI = $this->adminurl . 'index.php?action=goItem&amp;blogid=' . $b->bnumber;
@@ -203,7 +205,7 @@ class CustomURL_ADMIN
 		$query = 'SELECT catid, cname, cdesc FROM %s WHERE cblog = %d';
 		$query = sprintf($query, sql_table('category'), $bid);
 		$cnm   = sql_query($query);
-		while ($c = mysql_fetch_object($cnm)) {
+		while ($c = sql_fetch_object($cnm)) {
 			$cPath = $this->_hsc($this->plugin->getCategoryOption($c->catid, 'customurl_cname'));
 			$data  = array (
 							'oid'    => intval($c->catid),
@@ -223,7 +225,7 @@ class CustomURL_ADMIN
 				$query = 'SELECT scatid, sname, sdesc FROM %s WHERE catid = %d';
 				$query = sprintf($query, sql_table('plug_multiple_categories_sub'), intval($c->catid));
 				$scnm  = sql_query($query);
-				while ($sc = mysql_fetch_object($scnm)) {
+				while ($sc = sql_fetch_object($scnm)) {
 					$query = 'SELECT obj_name '
 						   . 'FROM %s '
 						   . 'WHERE obj_param = "subcategory" '
@@ -231,7 +233,7 @@ class CustomURL_ADMIN
 						   . 'AND   obj_id = %d';
 					$query = sprintf($query, $this->table, intval($c->catid), intval($sc->scatid));
 					$scpt  = sql_query($query);
-					$scp   = mysql_fetch_object($scpt);
+					$scp   = sql_fetch_object($scpt);
 					$data  = array (
 									'oid'    => intval($sc->scatid),
 									'obd'    => intval($c->catid),
@@ -281,7 +283,7 @@ class CustomURL_ADMIN
 		$query = 'SELECT %s,%s,%s FROM %s';
 		$query = sprintf($query, mname, mnumber, mrealname, sql_table('member'));
 		$res   = sql_query($query);
-		while ($m = mysql_fetch_object($res)) {
+		while ($m = sql_fetch_object($res)) {
 			$mPath = $this->_hsc($this->plugin->getMemberOption($m->mnumber, 'customurl_mname'));
 			$data  = array (
 						    'oid'    => intval($m->mnumber),
@@ -346,7 +348,7 @@ class CustomURL_ADMIN
 		$query = 'SELECT %s,%s,%s FROM %s WHERE iblog = %d ORDER BY itime DESC';
 		$query = sprintf($query, ititle, inumber, ibody, sql_table('item'), $bid);
 		$res   = sql_query($query);
-		while ($i = mysql_fetch_object($res)) {
+		while ($i = sql_fetch_object($res)) {
 			$query    = 'SELECT obj_name as result FROM %s WHERE obj_param = "item" AND obj_id = %d';
 			$query    = sprintf($query, sql_table('plug_customurl'), intval($i->inumber));
 			$temp_res = quickQuery($query);
