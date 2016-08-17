@@ -37,8 +37,8 @@ class CustomURL_ADMIN
 		$this->name     =  $this->plugin->getName();
 		$this->pluginid =  $this->plugin->getID();
 		$this->adminurl =  $this->plugin->getAdminURL();
-		$this->editurl  =  $CONF['adminURL'];
-		$this->pediturl =  $CONF['adminURL']
+		$this->editurl  =  $CONF['AdminURL'];
+		$this->pediturl =  $CONF['AdminURL']
 						. 'index.php?action=pluginoptions&amp;plugid='
 						. $this->pluginid;
 		$this->table    =  sql_table('plug_customurl');
@@ -124,7 +124,7 @@ class CustomURL_ADMIN
 		unset($printData);
 		$this->print_tablehead(_BLOG_LIST_TITLE, _LISTS_ACTIONS);
 		$query = 'SELECT %s,%s,%s FROM %s';
-		$query = sprintf($query, bname, bnumber, bshortname, sql_table('blog'));
+		$query = sprintf($query, 'bname', 'bnumber', 'bshortname', sql_table('blog'));
 		$res   = sql_query($query);
 		while ($b = sql_fetch_object($res)) {
 //			$forCatURI  = $this->adminurl . 'index.php?action=goCategory&amp;blogid=' . $b->bnumber;
@@ -281,7 +281,7 @@ class CustomURL_ADMIN
 		unset($printData);
 		$this->print_tablehead(_LOGIN_NAME, _MEMBERS_REALNAME);
 		$query = 'SELECT %s,%s,%s FROM %s';
-		$query = sprintf($query, mname, mnumber, mrealname, sql_table('member'));
+		$query = sprintf($query, 'mname', 'mnumber', 'mrealname', sql_table('member'));
 		$res   = sql_query($query);
 		while ($m = sql_fetch_object($res)) {
 			$mPath = $this->_hsc($this->plugin->getMemberOption($m->mnumber, 'customurl_mname'));
@@ -346,7 +346,7 @@ class CustomURL_ADMIN
 		unset($printData);
 		$this->print_tablehead(_LISTS_TITLE, _LISTS_ITEM_DESC);
 		$query = 'SELECT %s,%s,%s FROM %s WHERE iblog = %d ORDER BY itime DESC';
-		$query = sprintf($query, ititle, inumber, ibody, sql_table('item'), $bid);
+		$query = sprintf($query, 'ititle', 'inumber', 'ibody', sql_table('item'), $bid);
 		$res   = sql_query($query);
 		while ($i = sql_fetch_object($res)) {
 			$query    = 'SELECT obj_name as result FROM %s WHERE obj_param = "item" AND obj_id = %d';
