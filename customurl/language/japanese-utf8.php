@@ -17,6 +17,7 @@
 	define('_OP_NOT_FOUND',			'URI に該当するデータが存在しなかった場合の挙動');
 	define('_OP_TABLE_DELETE',		'アンインストールするときにテーブルを削除しますか？');
 	define('_OP_QUICK_LINK',		'クイックメニューにショートカットを追加しますか？');
+	define('_OP_ALLOW_EDIT_MEMBER_URI',		'管理権限を持たないメンバーに「メンバーのリクエストURI」の変更を許可しますか？');
 // Blog
 	define('_OP_USE_CURL',			'このブログで URI の別名を使用する');
 	define('_OP_BLOG_PATH',			'このブログのリクエスト URI');
