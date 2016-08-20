@@ -17,6 +17,7 @@
 	define('_OP_NOT_FOUND',			'Behavior when there were not data to fall under');
 	define('_OP_TABLE_DELETE',		'Drop tables on uninstall ?');
 	define('_OP_QUICK_LINK',		'Show in Quick Menu ?');
+	define('_OP_ALLOW_EDIT_MEMBER_URI',		'Do you want to allow the editing of "Member request URI" to members who have no administrative privileges?');
 // Blog
 	define('_OP_USE_CURL',			'Use URI alias in this weblog');
 	define('_OP_BLOG_PATH',			'Weblog request URI');

@@ -83,6 +83,8 @@ class NP_CustomURL extends NucleusPlugin
 					  'PostMoveCategory',
 					  'PostMoveItem',
 					  'InitSkinParse',
+					  'PrePluginOptionsEdit',
+					  'PostUpdatePlugin',
 					 );
 	}
 
@@ -163,6 +165,8 @@ class NP_CustomURL extends NucleusPlugin
 		$this->createOption('customurl_notfound',  _OP_NOT_FOUND,
 							'select', '404',
 							'404 Not Found|404|303 See Other|303');
+		$this->createOption('customurl_allow_edit_member_uri', _OP_ALLOW_EDIT_MEMBER_URI,
+							'yesno', 'no');
 		$this->createBlogOption(    'use_customurl',   _OP_USE_CURL,
 									'yesno', 'yes');
 		$this->createBlogOption(    'redirect_normal', _OP_RED_NORM,
@@ -352,6 +356,7 @@ class NP_CustomURL extends NucleusPlugin
 		$this->deleteOption('customurl_notfound');
 		$this->deleteOption('customurl_tabledel');
 		$this->deleteOption('customurl_quicklink');
+		$this->deleteOption('customurl_allow_edit_member_uri');
 		$this->deleteBlogOption('use_customurl');
 		$this->deleteBlogOption('redirect_normal');
 		$this->deleteBlogOption('redirect_search');
@@ -2319,6 +2324,12 @@ OUTPUT;
 		$context     = $data['context'];
 		if ($blog_option || $cate_option || $memb_option) {
 			if ($context == 'member' ) {
+				if (!$member->isAdmin())
+				{
+					$allow = $this->getOption('customurl_allow_edit_member_uri') == 'yes';
+					if (!$allow)
+					   return;
+				}
 				$blogid = 0;
 				$query  = 'SELECT mname as result FROM %s WHERE mnumber = %d';
 				$table  = sql_table('member');
@@ -2591,4 +2602,28 @@ OUTPUT;
 			return htmlspecialchars($string, $flags, $encoding);
 		}
 	}
+
+	public function event_PrePluginOptionsEdit(&$data)
+	{
+		global $member;
+		if ($data['context'] == 'member' && !$member->isAdmin())
+		{
+			$allow = $this->getOption('customurl_allow_edit_member_uri') == 'yes';
+			$myid = $this->getID();
+			if (!$allow)
+				foreach($data['options'] as $k => $v)
+					if ($v['pid'] == $myid)
+						unset($data['options'][$k]);
+		}
+	}
+
+	public function event_PostUpdatePlugin(&$data)
+	{
+		if ( method_exists( 'NucleusPlugin' , 'existOptionDesc' ) )  // method_exists , PHP do not search parent functions
+		{
+			if ( !$this->existOptionDesc( 'customurl_allow_edit_member_uri' ) )
+				$this->createOption('customurl_allow_edit_member_uri', _OP_ALLOW_EDIT_MEMBER_URI, 'yesno', 'no');
+		}
+	}
+
 }
