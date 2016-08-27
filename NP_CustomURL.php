@@ -1105,6 +1105,9 @@ class NP_CustomURL extends NucleusPlugin
 		if ($data['completed']) {
 			return;
 		}
+		$ref_data =& $data;
+		unset($data);
+		$data = array_merge($ref_data); // copy data to avoid contamination of the variable
 		if (is_numeric($blogid)) {
 			$blogid = intval($blogid);
 		} else {
@@ -1197,12 +1200,14 @@ class NP_CustomURL extends NucleusPlugin
 						$data['url'] = $this->_generateBlogLink($blogid) . '/'
 									 . $OP_MemberKey . '/' . $path . '.html';
 						$data['completed'] = TRUE;
+						$ref_data = array_merge($data);
 						return;
 					} else {
 						if (!$this->_isValid(array('member', 'mnumber', $memberID))) {
 							$data['url'] = $this->_generateBlogLink($blogid) . '/'
 										 . _NOT_VALID_MEMBER;
 							$data['completed'] = TRUE;
+							$ref_data = array_merge($data);
 							return;
 						} else {
 							$query = 'SELECT mname as result FROM %s'
@@ -1213,6 +1218,7 @@ class NP_CustomURL extends NucleusPlugin
 							$data['url'] = $this->_generateBlogLink($blogid) . '/'
 										 . $OP_MemberKey . '/' . $mname . '.html';
 							$data['completed'] = TRUE;
+							$ref_data = array_merge($data);
 							return;
 						}
 					}
@@ -1333,7 +1339,8 @@ class NP_CustomURL extends NucleusPlugin
 			$data['url'] = $this->_generateBlogLink($blogid) . '/';
 			$data['completed'] = TRUE;
 		}
-		return $data;
+		if ($data['completed'])
+			$ref_data = array_merge($data);
 	}
 
 	function _createSubCategoryLink($scid)
@@ -1466,7 +1473,17 @@ class NP_CustomURL extends NucleusPlugin
 				}
 			}
 		}
-
+		else
+		{
+			if (strlen($burl)==0) {
+				$usePathInfo = ($CONF['URLMode'] == 'pathinfo');
+				if ($usePathInfo) {
+					$burl = $CONF['BlogURL'] . '/' . $CONF['BlogKey'] . '/' . $blog_id;
+				} else {
+					$burl = $CONF['BlogURL'] . '?blogid=' . $blog_id;
+				}
+			}
+		}
 		return trim($burl, '/');
 	}
 
@@ -1507,6 +1524,7 @@ class NP_CustomURL extends NucleusPlugin
 				$linkExtra = $this->getOption('customurl_archives') . '/';
 				unset($params['archivelist']);
 			} elseif (array_key_exists('archive', $params)) {
+				$y = $m = $d = '';
 				sscanf($params['archive'], '%d-%d-%d', $y, $m, $d);
 				if ($d) {
 					$arc = sprintf('%04d-%02d-%02d', $y, $m, $d);
@@ -1747,11 +1765,11 @@ class NP_CustomURL extends NucleusPlugin
 
 	function _isValid($data)
 	{
-		$query   = 'SELECT * FROM %s WHERE %s = %d';
+		$query   = 'SELECT count(*) AS result FROM %s WHERE %s = %d';
 		$data[2] = $this->quote_smart($data[2]);
 		$query   = sprintf($query, sql_table($data[0]), $data[1], $data[2]);
-		$res     = sql_query($query);
-		return (sql_num_rows($res) != 0);
+		$ct      = intval(quickQuery($query));
+		return ($ct != 0);
 	}
 
 	function _genarateObjectLink($data, $scatFlag = '')
@@ -2029,13 +2047,10 @@ class NP_CustomURL extends NucleusPlugin
 		$query    = sprintf($query, sql_table('skin'), $skinID, $pageType);
 		$res      = sql_query($query);
 
-		if (sql_num_rows($res) == 0) {
-			return '';
-		} else {
-			return sql_result($res, 0, 0);
-		}
+		if ($res && ($obj = sql_fetch_object($res)))
+			return $obj->scontent;
+		return '';
 	}
-
 
 // merge NP_RightURL
 	function event_PreSkinParse($data)
@@ -2324,6 +2339,7 @@ OUTPUT;
 		$context     = $data['context'];
 		if ($blog_option || $cate_option || $memb_option) {
 			if ($context == 'member' ) {
+				global $member;
 				if (!$member->isAdmin())
 				{
 					$allow = $this->getOption('customurl_allow_edit_member_uri') == 'yes';
@@ -2334,7 +2350,7 @@ OUTPUT;
 				$query  = 'SELECT mname as result FROM %s WHERE mnumber = %d';
 				$table  = sql_table('member');
 				$name   = quickQuery(sprintf($query, $table, $contextid));
-			} elseif (context == 'category') {
+			} elseif ($context == 'category') {
 				$blogid = getBlogIDFromCatID($contextid);
 				$query  = 'SELECT cname as result FROM %s WHERE catid = %d';
 				$table  = sql_table('category');
@@ -2412,6 +2428,7 @@ OUTPUT;
 		$bid   = intval($bid);
 		$objID = intval($objID);
 		$name  = rawurlencode($name);
+		$msg = '';
 
 		if ($new && $oParam == 'item') {
 			$tque  = 'SELECT itime as result FROM %s WHERE inumber = %d';
@@ -2449,7 +2466,7 @@ OUTPUT;
 				  . " AND  obj_param = '%s'"
 				  . ' AND    obj_id != %d';
 		$res = sql_query(sprintf($conf_que, _CUSTOMURL_TABLE, $tempPath, $bid, $oParam, $objID));
-		if ($res && sql_num_rows($res)) {
+		if ($res && ($obj = sql_fetch_object($res))) {
 			$msg   = array (0, _CONFLICT_ERROR, $name, _CONFLICT_MSG);
 			$path .= '_'.$objID;
 		}
@@ -2457,7 +2474,7 @@ OUTPUT;
 			$conf_cat = "SELECT obj_id FROM %s WHERE obj_name = '%s'"
 					  . ' AND obj_param = "blog"';
 			$res = sql_query(sprintf($conf_cat, _CUSTOMURL_TABLE, $tempPath));
-			if ($res && sql_num_rows($res)) {
+			if ($res && ($obj = sql_fetch_object($res))) {
 				$msg   = array (0, _CONFLICT_ERROR, $name, _CONFLICT_MSG);
 				$path .= '_'.$objID;
 			}
@@ -2466,7 +2483,7 @@ OUTPUT;
 			$conf_blg = "SELECT obj_id FROM %s WHERE obj_name = '%s'"
 					  . ' AND obj_param = "category"';
 			$res = sql_query(sprintf($conf_blg, _CUSTOMURL_TABLE, $tempPath));
-			if ($res && sql_num_rows($res)) {
+			if ($res && ($obj = sql_fetch_object($res))) {
 				$msg   = array (0, _CONFLICT_ERROR, $name, _CONFLICT_MSG);
 				$path .= '_'.$objID;
 			}
@@ -2476,9 +2493,9 @@ OUTPUT;
 		if ($oParam == 'item' || $oParam == 'member') $newPath .= '.html';
 		$query = "SELECT * FROM %s WHERE obj_id = %d AND obj_param = '%s'";
 		$res = sql_query(sprintf($query, _CUSTOMURL_TABLE, $objID, $oParam));
-		$row = sql_fetch_object($res);
-		$pathID = $row->id;
-		if ($pathID) {
+		if ($res && ($row = sql_fetch_object($res)) && !empty($row)) {
+			$pathID = $row->id;
+			sql_free_result($res);
 			$query = "UPDATE %s SET obj_name = '%s' WHERE id = %d";
 			sql_query(sprintf($query, _CUSTOMURL_TABLE, $newPath, $pathID));
 		} else {
