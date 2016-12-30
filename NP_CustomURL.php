@@ -838,6 +838,10 @@ class NP_CustomURL extends NucleusPlugin
 				case 'special':
 				case $CONF['SpecialskinKey']:
 					if (isset($v_path[$i]) && is_string($v_path[$i])) {
+						if (strlen($v_path[$i]>0) && isValidSkinName($v_path[$i])) {
+							global $special;
+							$special = $v_path[$i];
+						}
 						$_REQUEST['special'] = $v_path[$i];
 						$exLink          = TRUE;
 					}
