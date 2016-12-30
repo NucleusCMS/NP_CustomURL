@@ -165,8 +165,11 @@ class NP_CustomURL extends NucleusPlugin
 		$this->createOption('customurl_notfound',  _OP_NOT_FOUND,
 							'select', '404',
 							'404 Not Found|404|303 See Other|303');
-		$this->createOption('customurl_allow_edit_member_uri', _OP_ALLOW_EDIT_MEMBER_URI,
+		//                   01234567890123456789  name: max 20 length
+		$this->createOption('allow_editmemberuri', _OP_ALLOW_EDIT_MEMBER_URI,
 							'yesno', 'no');
+		$this->createOption('allow_special_uri', _OP_ALLOW_SPECIAL_URI, 'yesno', 'no');
+
 		$this->createBlogOption(    'use_customurl',   _OP_USE_CURL,
 									'yesno', 'yes');
 		$this->createBlogOption(    'redirect_normal', _OP_RED_NORM,
@@ -356,7 +359,7 @@ class NP_CustomURL extends NucleusPlugin
 		$this->deleteOption('customurl_notfound');
 		$this->deleteOption('customurl_tabledel');
 		$this->deleteOption('customurl_quicklink');
-		$this->deleteOption('customurl_allow_edit_member_uri');
+		$this->deleteOption('allow_editmemberuri');
 		$this->deleteBlogOption('use_customurl');
 		$this->deleteBlogOption('redirect_normal');
 		$this->deleteBlogOption('redirect_search');
@@ -837,7 +840,13 @@ class NP_CustomURL extends NucleusPlugin
 				break;
 				case 'special':
 				case $CONF['SpecialskinKey']:
-					if (isset($v_path[$i]) && is_string($v_path[$i])) {
+					$allow_special_uri = ($this->getOption('allow_special_uri') == 'yes');
+					if (isset($v_path[$i]) && is_string($v_path[$i])
+						&& $allow_special_uri
+						&& strlen($v_path[$i])>0 && isValidSkinName($v_path[$i])
+						) {
+						global $special;
+						$special = $v_path[$i];
 						$_REQUEST['special'] = $v_path[$i];
 						$exLink          = TRUE;
 					}
@@ -2342,7 +2351,7 @@ OUTPUT;
 				global $member;
 				if (!$member->isAdmin())
 				{
-					$allow = $this->getOption('customurl_allow_edit_member_uri') == 'yes';
+					$allow = $this->getOption('allow_editmemberuri') == 'yes';
 					if (!$allow)
 					   return;
 				}
@@ -2625,7 +2634,7 @@ OUTPUT;
 		global $member;
 		if ($data['context'] == 'member' && !$member->isAdmin())
 		{
-			$allow = $this->getOption('customurl_allow_edit_member_uri') == 'yes';
+			$allow = $this->getOption('allow_editmemberuri') == 'yes';
 			$myid = $this->getID();
 			if (!$allow)
 				foreach($data['options'] as $k => $v)
@@ -2638,8 +2647,19 @@ OUTPUT;
 	{
 		if ( method_exists( 'NucleusPlugin' , 'existOptionDesc' ) )  // method_exists , PHP do not search parent functions
 		{
-			if ( !$this->existOptionDesc( 'customurl_allow_edit_member_uri' ) )
-				$this->createOption('customurl_allow_edit_member_uri', _OP_ALLOW_EDIT_MEMBER_URI, 'yesno', 'no');
+			if ( !$this->existOptionDesc( 'allow_editmemberuri' ) )
+				$this->createOption('allow_editmemberuri', _OP_ALLOW_EDIT_MEMBER_URI, 'yesno', 'no');
+
+			if ( !$this->existOptionDesc( 'allow_special_uri' ) )
+				$this->createOption('allow_special_uri', _OP_ALLOW_SPECIAL_URI, 'yesno', 'no');
+
+			$oldname = 'customurl_allow_edit_member_uri';
+			if (!isset($this->is_db_mysql) || $this->is_db_mysql)
+				$oldname = substr($oldname, 0, 20);
+			if ( $this->existOptionDesc( $oldname ) ) {
+				$this->setOption('allow_special_uri', $this->getOption($oldname));
+				$this->deleteOption($oldname);
+			}
 		}
 	}
 
