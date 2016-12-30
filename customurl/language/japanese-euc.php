@@ -18,6 +18,7 @@
 	define('_OP_TABLE_DELETE',		'アンインストールするときにテーブルを削除しますか？');
 	define('_OP_QUICK_LINK',		'クイックメニューにショートカットを追加しますか？');
 	define('_OP_ALLOW_EDIT_MEMBER_URI',		'管理権限を持たないメンバーに「メンバーのリクエストURI」の変更を許可しますか？');
+	define('_OP_ALLOW_SPECIAL_URI',		'URI「special/スキンパーツ名」の利用を許可しますか？');
 // Blog
 	define('_OP_USE_CURL',			'このブログで URI の別名を使用する');
 	define('_OP_BLOG_PATH',			'このブログのリクエスト URI');
