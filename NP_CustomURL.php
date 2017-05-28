@@ -23,7 +23,7 @@ class NP_CustomURL extends NucleusPlugin
 	function getName()              { return 'Customized URL';}
 	function getAuthor()            { return 'shizuki + nekonosippo + Cacher + Reine';}
 	function getURL()               { return 'http://japan.nucleuscms.org/wiki/plugins:customurl';}
-	function getVersion()           { return '0.4.0';}
+	function getVersion()           { return '0.4.1';}
 	function getDescription()       { return _DESCRIPTION;}
 	function hasAdminArea()         { return 1;}
 	function getTableList()         { return array(_CUSTOMURL_TABLE);}
