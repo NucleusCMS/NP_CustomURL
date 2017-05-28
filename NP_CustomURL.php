@@ -1985,8 +1985,10 @@ class NP_CustomURL extends NucleusPlugin
 									   'contents' => &$contents
 									  );
 					$manager->notify('PreSkinParse', $dataArray);
-					PARSER::setProperty('IncludeMode',   SKIN::getIncludeMode());
-					PARSER::setProperty('IncludePrefix', SKIN::getIncludePrefix());
+					global $skinid;
+					$skin = new SKIN($skinid);
+					PARSER::setProperty('IncludeMode',   $skin->getIncludeMode());
+					PARSER::setProperty('IncludePrefix', $skin->getIncludePrefix());
 					$handler = new ACTIONS($pageType, $skinData);
 					$parser  = new PARSER($actions, $handler);
 					$handler->setParser($parser);
