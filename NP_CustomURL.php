@@ -1568,7 +1568,7 @@ class NP_CustomURL extends NucleusPlugin
 			$link .= $linkExtra;
 		}
 		if (requestVar('skinid')) {
-			$skinid = htmlspecialchars(requestVar('skinid'), ENT_QUOTES, _CHARSET);
+			$skinid = hsc(requestVar('skinid'));
 			if (!$link) {
 				$link = '?skinid=' . $skinid;
 			} elseif (strpos('?', $link)) {
