@@ -635,6 +635,7 @@ class NP_CustomURL extends NucleusPlugin
 		$redURI = NULL;
 		$sc = NULL;
 		foreach($v_path as $pathName) {
+			if(!isset($subrequest)) $subrequest = null;
 			switch ($pathName) {
 // decode FancyURLs and redirection to Customized URL
 				// for blogsgetAllBlogOptions($name)
@@ -983,7 +984,7 @@ class NP_CustomURL extends NucleusPlugin
 				} else {
 					$uri = createBlogidLink($blogid);
 				}
-			} elseif (reset($v_path) && !$catid && !$subcatid && !$iLink) {
+			} elseif (reset($v_path) && !$catid && (!isset($subcatid)||!$subcatid) && !$iLink) {
 				$notFound = TRUE;
 				$uri      = createBlogidLink($blogid);
 			} else {
@@ -1122,7 +1123,7 @@ class NP_CustomURL extends NucleusPlugin
 				$subrequest = $mcategories->getRequestName();
 			}
 		}
-		if ($subcatid) {
+		if (isset($subcatid) && $subcatid) {
 			$subcatid = intval($subcatid);
 		}
 		$OP_ArchiveKey	= $this->getOption('customurl_archive');
