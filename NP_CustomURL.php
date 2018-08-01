@@ -2097,7 +2097,9 @@ class NP_CustomURL extends NucleusPlugin
 	function event_PreItem($data)
 	{
 		global $CONF, $manager;
-
+		
+		if(!isset($data['item'])) return;
+		
 		if (getNucleusVersion() < '330') {
 			$this->currentItem = &$data['item']; 
 			$pattern = '/<%CustomURL\((.*)\)%>/';
