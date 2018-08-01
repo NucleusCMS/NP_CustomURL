@@ -379,16 +379,17 @@ class NP_CustomURL extends NucleusPlugin
 		$useCustomURL = $this->getAllBlogOptions('use_customurl');
 // Use NP_MultipleCategories ?
 		$mcategories  = $this->pluginCheck('MultipleCategories');
+		global $subcatid;
 		if ($mcategories) {
 			$param = array();
 			$mcategories->event_PreSkinParse($param);
-			global $subcatid;
 			if (method_exists($mcategories, 'getRequestName')) {
 				$subrequest = $mcategories->getRequestName();
 			} else {
 				$subrequest = 'subcatid';
 			}
 		}
+		else $subcatid = 0;
 
 // initialize and sanitize '$blogid'
 		if (!$blogid) {
