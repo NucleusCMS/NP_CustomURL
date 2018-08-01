@@ -1707,8 +1707,8 @@ class NP_CustomURL extends NucleusPlugin
 		$l_type  = $l_data[0];
 		$target  = $l_data[1];
 		$title   = $l_data[2];
-		$item_id = intval($this->currentItem->itemid);
 		if (!$l_type) {
+			$item_id = intval($this->currentItem->itemid);
 			$link_params = array (
 								  'i',
 								  $item_id,
