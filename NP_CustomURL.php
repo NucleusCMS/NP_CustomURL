@@ -438,11 +438,7 @@ class NP_CustomURL extends NucleusPlugin
 			$value = preg_replace('|[^a-zA-Z0-9-~+_.?#=&;,/:@%]|i', '', $value);
 			$v_path[$key] = $value;
 		}
-		if (phpversion() >= '4.1.0') {
-			$_SERVER['PATH_INFO'] = implode('/', $v_path);
-		}
-		global $HTTP_SERVER_VARS;
-		$HTTP_SERVER_VARS['PATH_INFO'] = implode('/', $v_path);
+        $_SERVER['PATH_INFO'] = join('/', $v_path);
 
 // Admin area check
 		$tmpURL       = sprintf("%s%s%s", "http://", serverVar("HTTP_HOST"), serverVar("SCRIPT_NAME"));
@@ -1425,13 +1421,12 @@ class NP_CustomURL extends NucleusPlugin
 							);
 			if (!$this->_isValid($catData)) {
 				return $url = _NOT_VALID_CAT;
-			} else {
-				$cpath   = $this->getOption('customurl_dfcat') . '_' . $cat_id;
-				$blog_id = intval(getBlogIDFromCatID($cat_id));
-				$catname = 'catid_' . $cat_id;
-				$this->RegistPath($cat_id, $cpath, $blog_id, 'category', $catname, TRUE);
-				return $cpath . '/';
 			}
+			$cpath   = $this->getOption('customurl_dfcat') . '_' . $cat_id;
+			$blog_id = intval(getBlogIDFromCatID($cat_id));
+			$catname = 'catid_' . $cat_id;
+			$this->RegistPath($cat_id, $cpath, $blog_id, 'category', $catname, TRUE);
+			return $cpath . '/';
 		}
 	}
 
