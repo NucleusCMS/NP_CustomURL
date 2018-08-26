@@ -752,15 +752,9 @@ class NP_CustomURL extends NucleusPlugin
 					$redirectSerch = ($this->getBlogOption($blogid, 'redirect_search') == 'yes');
 					if ($redirectSerch) {
 						$que_str = urldecode($v_path[$i]);
-						if (extension_loaded('mbstring')) {
-							$que_str = str_ireplace(md5('/'), '/', $que_str);
-							$que_str = str_ireplace(md5("'"), "'", $que_str);
-							$que_str = str_ireplace(md5('&'), '&', $que_str);
-						} else {
-							$que_str = str_ireplace(md5('/'), '/', $que_str);
-							$que_str = str_ireplace(md5("'"), "'", $que_str);
-							$que_str = str_ireplace(md5('&'), '&', $que_str);
-						}
+						$que_str = str_ireplace(md5('/'), '/', $que_str);
+						$que_str = str_ireplace(md5("'"), "'", $que_str);
+						$que_str = str_ireplace(md5('&'), '&', $que_str);
 						$que_str       = htmlspecialchars_decode($que_str);
 						$_GET['query'] = $que_str;
 						$query         = $que_str;
