@@ -232,8 +232,7 @@ class NP_CustomURL extends NucleusPlugin
 					$param['year']  = sprintf('%04d', $y);
 					$param['month'] = sprintf('%02d', $m);
 					$param['day']   = sprintf('%02d', $d);
-					$itplt   = $this->getOption('customurl_dfitem');
-					$ikey    = TEMPLATE::fill($itplt, $param);
+					$ikey    = TEMPLATE::fill($this->getOption('customurl_dfitem'), $param);
 					$ph['name'] = $ikey . '_' . $row[$field_name1] . '.html';
 					$ph['bid'] = (int)$row[$field_name2];
 					break;
