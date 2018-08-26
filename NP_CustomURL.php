@@ -3,13 +3,6 @@
 global $CONF;
 $CONF['Self']='';
 
-if (!function_exists('htmlspecialchars_decode')) {
-	function htmlspecialchars_decode($text)
-	{
-		return strtr($text, array_flip(get_html_translation_table(HTML_SPECIALCHARS)));
-	}
-}
-
 if (!defined('_CUSTOMURL_TABLE_DEFINED')) {
 	define('_CUSTOMURL_TABLE_DEFINED', 1);
 	define('_CUSTOMURL_TABLE',         sql_table('plug_customurl'));
