@@ -428,8 +428,8 @@ class NP_CustomURL extends NucleusPlugin
 // 301 permanent ? or 302 temporary ?
 			$queryURL = (strpos(serverVar('REQUEST_URI'), 'query=') !== false);
 			$search_q = (getVar('query') || $queryURL);
-			$redirectSerch = ($this->getBlogOption($blogid, 'redirect_search') == 'yes');
-			if ($redirectSerch) {
+			$redirectSearch = ($this->getBlogOption($blogid, 'redirect_search') == 'yes');
+			if ($redirectSearch) {
 				if ($search_q) {
 					$que_str     = hsc(getVar('query'));
 					$que_str = str_replace('/', md5('/'), $que_str);
@@ -444,7 +444,7 @@ class NP_CustomURL extends NucleusPlugin
 				}
 			}
 			$exLink = false;
-			if (!$redirectSerch && $search_q) {
+			if (!$redirectSearch && $search_q) {
 				$exLink = true;
 			}
 
@@ -741,8 +741,8 @@ class NP_CustomURL extends NucleusPlugin
 					break;
 				// for search query
 				case 'search':
-					$redirectSerch = ($this->getBlogOption($blogid, 'redirect_search') == 'yes');
-					if ($redirectSerch) {
+					$redirectSearch = ($this->getBlogOption($blogid, 'redirect_search') == 'yes');
+					if ($redirectSearch) {
 						$que_str = urldecode($v_path[$i]);
 						$que_str = str_ireplace(md5('/'), '/', $que_str);
 						$que_str = str_ireplace(md5("'"), "'", $que_str);
