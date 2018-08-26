@@ -227,7 +227,7 @@ class NP_CustomURL extends NucleusPlugin
 					$ph['id'] = (int)$row[$field_name1];
 					$query = 'SELECT itime as result FROM [@prefix@]item WHERE inumber=[@id@]';
 					$itime = parseQuickQuery($query, $ph);
-					list($y, $m, $d, $trush) = sscanf($itime, '%d-%d-%d %s');
+					list($y, $m, $d, $null) = sscanf($itime, '%d-%d-%d %s');
 					$param['year']  = sprintf('%04d', $y);
 					$param['month'] = sprintf('%02d', $m);
 					$param['day']   = sprintf('%02d', $d);
@@ -417,7 +417,7 @@ class NP_CustomURL extends NucleusPlugin
 		$blog_id = $this->getRequestPathInfo($linkObj);
 		if ($blog_id) {
 			$blogid = $blog_id;
-			$trush  = array_shift($v_path);
+			array_shift($v_path);
 			$bLink  = true;
 		}
 		
@@ -2132,7 +2132,7 @@ class NP_CustomURL extends NucleusPlugin
 		$query    = 'SELECT itime as result FROM [@prefix@]item WHERE inumber=[@itemid@]';
 		$itime   = parseQuickQuery($query, $ph);
 		
-		list($y, $m, $d, $trush) = sscanf($itime, '%d-%d-%d %s');
+		list($y, $m, $d, $null) = sscanf($itime, '%d-%d-%d %s');
 		$param['year']  = sprintf('%04d', $y);
 		$param['month'] = sprintf('%02d', $m);
 		$param['day']   = sprintf('%02d', $d);
@@ -2172,7 +2172,7 @@ class NP_CustomURL extends NucleusPlugin
 		$itime = parseQuickQuery($query ,$ph);
 		
 		$tpath = requestVar('plug_custom_url_path');
-		list($y, $m, $d, $trush) = sscanf($itime, '%d-%d-%d %s');
+		list($y, $m, $d, $null) = sscanf($itime, '%d-%d-%d %s');
 		$param['year']  = sprintf('%04d', $y);
 		$param['month'] = sprintf('%02d', $m);
 		$param['day']   = sprintf('%02d', $d);
@@ -2315,7 +2315,7 @@ OUTPUT;
 		if ($new && $oParam == 'item') {
 			$query = 'SELECT itime as result FROM [@prefix@]item WHERE inumber=[@objID@]';
 			$itime = parseQuickQuery($query, $ph);
-			list($y, $m, $d, $trush) = sscanf($itime, '%d-%d-%d %s');
+			list($y, $m, $d, $null) = sscanf($itime, '%d-%d-%d %s');
 			$param['year']  = sprintf('%04d', $y);
 			$param['month'] = sprintf('%02d', $m);
 			$param['day']   = sprintf('%02d', $d);
