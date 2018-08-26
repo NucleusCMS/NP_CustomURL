@@ -1943,7 +1943,7 @@ class NP_CustomURL extends NucleusPlugin
 
 	private function getSkinContent($pageType, $skinID)
 	{
-		$query = 'SELECT scontent FROM [@prefix@]skin WHERE sdesc=[@skinID@] AND stype=[@pageType@]';
+		$query = "SELECT scontent FROM [@prefix@]skin WHERE sdesc=[@skinID@] AND stype='[@pageType@]'";
 		$ph = array();
 		$ph['skinID']   = (int)$skinID;
 		$ph['pageType'] = sql_real_escape_string($pageType);
