@@ -58,9 +58,6 @@ class NP_CustomURL extends NucleusPlugin
 		global $CONF, $manager, $curl_blogid, $blogid, $itemid, $catid;
 		global $memberid, $archivelist, $archive, $query, $subcatid;
 		
-		if(isset($CONF['UsingAdminArea']) && $CONF['UsingAdminArea']) {
-			return;
-		}
 		if($this->isPluginAdminPage()) {
 			return;
 		}
@@ -70,8 +67,6 @@ class NP_CustomURL extends NucleusPlugin
 		if ($complete) {
 			return;
 		}
-		
-		$useCustomURL = $this->getAllBlogOptions('use_customurl');
 		
 		$v_path = explode('/', $this->get_path_info($data));
 		$_SERVER['PATH_INFO'] = join('/', $v_path);
@@ -108,6 +103,7 @@ class NP_CustomURL extends NucleusPlugin
 			}
 		}
 		
+		$useCustomURL = $this->getAllBlogOptions('use_customurl');
 		if ($useCustomURL[$blogid] == 'no') {
 			return;
 		}
@@ -125,7 +121,7 @@ class NP_CustomURL extends NucleusPlugin
 			}
 		}
 		
-		if ($useCustomURL[$blogid] == 'yes' && !$CONF['UsingAdminArea'] && !$this->isPluginAdminPage()) {
+		if ($useCustomURL[$blogid] == 'yes' && !$CONF['UsingAdminArea']) {
 // Search query redirection
 // 301 permanent ? or 302 temporary ?
 			$queryURL = (strpos(serverVar('REQUEST_URI'), 'query=') !== false);
@@ -568,7 +564,7 @@ class NP_CustomURL extends NucleusPlugin
 					$linkParam = array(
 									   $subrequest => $subcatid
 									  );
-					$uri       = createCategoryLink($catid, $linkParam);
+					$uri = createCategoryLink($catid, $linkParam);
 				} elseif (!empty($catid)) {
 					$uri = createCategoryLink($catid);
 				} else {
@@ -594,24 +590,14 @@ class NP_CustomURL extends NucleusPlugin
 				// Found
 				// setting $CONF['Self'] for other plugins
 				$uri                    = createBlogidLink($blogid);
-				$CONF['Self']           = rtrim($uri, '/');
-				$CONF['BlogURL']        = rtrim($uri, '/');
-				$CONF['ItemURL']        = rtrim($uri, '/');
-				$CONF['CategoryURL']    = rtrim($uri, '/');
-				$CONF['ArchiveURL']     = rtrim($uri, '/');
-				$CONF['ArchiveListURL'] = rtrim($uri, '/');
-				$complete               = true;
+				$this->treatNcUrls($uri);
+				$complete = true;
 				return ;
 			}
 		} else {
 			$uri                    = createBlogidLink($blogid);
-			$CONF['Self']           = rtrim($uri, '/');
-			$CONF['BlogURL']        = rtrim($uri, '/');
-			$CONF['ItemURL']        = rtrim($uri, '/');
-			$CONF['CategoryURL']    = rtrim($uri, '/');
-			$CONF['ArchiveURL']     = rtrim($uri, '/');
-			$CONF['ArchiveListURL'] = rtrim($uri, '/');
-			$complete               = true;
+			$this->treatNcUrls($uri);
+			$complete = true;
 			return ;
 		}
 // Behavior Not Found
@@ -629,6 +615,18 @@ class NP_CustomURL extends NucleusPlugin
 		}
 	}
 
+	private function treatNcUrls($uri)
+	{
+		global $CONF;
+		
+		$CONF['Self']           = rtrim($uri, '/');
+		$CONF['BlogURL']        = rtrim($uri, '/');
+		$CONF['ItemURL']        = rtrim($uri, '/');
+		$CONF['CategoryURL']    = rtrim($uri, '/');
+		$CONF['ArchiveURL']     = rtrim($uri, '/');
+		$CONF['ArchiveListURL'] = rtrim($uri, '/');
+	}
+	
 	private function isPluginAdminPage()
 	{
 		global $CONF;
