@@ -121,12 +121,10 @@ class NP_CustomURL extends NucleusPlugin
 		}
 		
 		if ($useCustomURL[$blogid] == 'yes' && !$CONF['UsingAdminArea']) {
-// Search query redirection
-// 301 permanent ? or 302 temporary ?
-			$queryURL = (strpos(serverVar('REQUEST_URI'), 'query=') !== false);
-			$search_q = (getVar('query') || $queryURL);
+			// Search query redirection
+			// 301 permanent ? or 302 temporary ?
 			$redirectSearch = ($this->getBlogOption($blogid, 'redirect_search') == 'yes');
-			if ($redirectSearch && $search_q) {
+			if ($redirectSearch && (getVar('query') || strpos(serverVar('REQUEST_URI'), 'query=') !== false)) {
 				$que_str = hsc(getVar('query'));
 				$que_str = str_replace('/', md5('/'), $que_str);
 				$que_str = str_replace("'", md5("'"), $que_str);
