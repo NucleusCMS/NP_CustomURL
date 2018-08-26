@@ -1842,107 +1842,103 @@ class NP_CustomURL extends NucleusPlugin
 	public function event_InitSkinParse($data)
 	{
 		global $blogid, $CONF, $manager, $nucleus;
-		$feedurl = array(
-						 'rss1.xml',
-						 'index.rdf',
-						 'rss2.xml',
-						 'atom.xml',
-						);
-		$reqPaths = explode('/', serverVar('PATH_INFO'));
+		$reqPaths = explode('/', trim(serverVar('PATH_INFO'), '/'));
 		$reqPath  = end($reqPaths);
-		$feeds    = in_array($reqPath, $feedurl, true);
-		if (!$feeds) {
-			return;
+		
+		switch ($reqPath) {
+			case 'rss1.xml':
+			case 'index.rdf':
+				$skinName = 'feeds/rss10';
+				break;
+			case 'rss2.xml':
+				$skinName = 'feeds/rss20';
+				break;
+			case 'atom.xml':
+				$skinName = 'feeds/atom';
+				break;
+			default:
+				return;
+		}
+		
+		if (!SKIN::exists($skinName)) {
+			exit;
+		}
+		
+		if(method_exists($data['skin'], 'changeSkinByName')) {
+			$data['skin']->changeSkinByName($skinName);
 		} else {
-			$p_info = trim(serverVar('PATH_INFO'), '/');
-			$path_arr = explode('/', $p_info);
-			switch (end($path_arr)) {
-				case 'rss1.xml':
-				case 'index.rdf':
-					$skinName = 'feeds/rss10';
-					break;
-				case 'rss2.xml':
-					$skinName = 'feeds/rss20';
-					break;
-				case 'atom.xml':
-					$skinName = 'feeds/atom';
-					break;
+			$newSkinId = SKIN::getIdFromName($skinName);
+			if(method_exists($data['skin'], "SKIN")) {
+				$data['skin']->SKIN($newSkinId);
+			} else {
+				$data['skin']->__construct($newSkinId);
 			}
-			if (SKIN::exists($skinName)) {
-				if(method_exists($data['skin'], "changeSkinByName")) {
-					$data['skin']->changeSkinByName($skinName);
-				} else {
-					$newSkinId = SKIN::getIdFromName($skinName);
-					if(method_exists($data['skin'], "SKIN")) {
-						$data['skin']->SKIN($newSkinId);
-					} else {
-						$data['skin']->__construct($newSkinId);
-					}
-				}
-				$skinData =& $data['skin'];
-				$pageType =  $data['type'];
-				if (!$CONF['DisableSite']) {
-					ob_start();
-
-					$skinID    = $skinData->id;
-					$contents  = $this->getSkinContent($pageType, $skinID);
-					$actions   = SKIN::getAllowedActionsForType($pageType);
-					$dataArray = array(
-									   'skin'     => &$skinData,
-									   'type'     =>  $pageType,
-									   'contents' => &$contents
-									  );
-					$manager->notify('PreSkinParse', $dataArray);
-					global $skinid;
-					$skin = new SKIN($skinid);
-					PARSER::setProperty('IncludeMode',   $skin->getIncludeMode());
-					PARSER::setProperty('IncludePrefix', $skin->getIncludePrefix());
-					$handler = new ACTIONS($pageType, $skinData);
-					$parser  = new PARSER($actions, $handler);
-					$handler->setParser($parser);
-					$handler->setSkin($skinData);
-					$parser->parse($contents);
-					$dataArray = array(
-									   'skin' => &$skinData,
-									   'type' =>  $pageType
-									  );
-					$manager->notify('PostSkinParse', $dataArray);
-
-					$feed = ob_get_contents();
-
-					ob_end_clean();
-					$eTag = '"' . md5($feed) . '"';
-					header('Etag: ' . $eTag);
-					if ($eTag == serverVar('HTTP_IF_NONE_MATCH')) {	
-						header('HTTP/1.0 304 Not Modified');
-						header('Content-Length: 0');
-					} else {
-						if (extension_loaded('mbstring')) {
-							$feed = mb_convert_encoding($feed, 'UTF-8', _CHARSET);
-							$charset = 'UTF-8';
-						} else {
-							$charset = _CHARSET;
-						}
-						header('Content-Type: application/xml; charset=' . $charset);
-						// dump feed
-						echo $feed;
-					}
-				} else {
-					echo '<' . '?xml version="1.0" encoding="ISO-8859-1"?' . '>';
+		}
+		
+		if ($CONF['DisableSite']) {
+			echo '<' . '?xml version="1.0" encoding="ISO-8859-1"?' . '>';
 ?>
 <rss version="2.0">
   <channel>
-    <title><?php echo hsc($CONF['SiteName'], ENT_QUOTES)?></title>
-    <link><?php echo hsc($CONF['IndexURL'], ENT_QUOTES)?></link>
+    <title><?php echo hsc($CONF['SiteName'])?></title>
+    <link><?php echo hsc($CONF['IndexURL'])?></link>
     <description></description>
     <docs>http://backend.userland.com/rss</docs>
   </channel>
-</rss>	
+</rss>
 <?php
-				}
-			}
-		exit;
+			exit;
 		}
+		
+		$skinData =& $data['skin'];
+		$pageType =  $data['type'];
+		
+		ob_start();
+
+		$skinID    = $skinData->id;
+		$contents  = $this->getSkinContent($pageType, $skinID);
+		$actions   = SKIN::getAllowedActionsForType($pageType);
+		$dataArray = array(
+						   'skin'     => &$skinData,
+						   'type'     =>  $pageType,
+						   'contents' => &$contents
+						  );
+		$manager->notify('PreSkinParse', $dataArray);
+		
+		global $skinid;
+		$skin = new SKIN($skinid);
+		PARSER::setProperty('IncludeMode',   $skin->getIncludeMode());
+		PARSER::setProperty('IncludePrefix', $skin->getIncludePrefix());
+		$handler = new ACTIONS($pageType, $skinData);
+		$parser  = new PARSER($actions, $handler);
+		$handler->setParser($parser);
+		$handler->setSkin($skinData);
+		$parser->parse($contents);
+		$dataArray = array(
+						   'skin' => &$skinData,
+						   'type' =>  $pageType
+						  );
+		$manager->notify('PostSkinParse', $dataArray);
+
+		$feed = ob_get_clean();
+
+		$eTag = '"' . md5($feed) . '"';
+		header('Etag: ' . $eTag);
+		if ($eTag == serverVar('HTTP_IF_NONE_MATCH')) {	
+			header('HTTP/1.0 304 Not Modified');
+			header('Content-Length: 0');
+		} else {
+			if (extension_loaded('mbstring')) {
+				$feed = mb_convert_encoding($feed, 'UTF-8', _CHARSET);
+				$charset = 'UTF-8';
+			} else {
+				$charset = _CHARSET;
+			}
+			header('Content-Type: application/xml; charset=' . $charset);
+			// dump feed
+			echo $feed;
+		}
+		exit;
 	}
 
 	private function getSkinContent($pageType, $skinID)
