@@ -372,10 +372,6 @@ class NP_CustomURL extends NucleusPlugin
 		if (!$info) {
 			if (serverVar('PATH_INFO')) {
 				$info = serverVar('PATH_INFO');
-			} elseif (getNucleusVersion() < 330) {
-				if (getVar('virtualpath')) {
-					$info = getVar('virtualpath');
-				}
 			} else {
 				if(getVar('query')) { 
 					$info = serverVar('REQUEST_URI'); 
@@ -393,11 +389,8 @@ class NP_CustomURL extends NucleusPlugin
 			$value = preg_replace('|[^a-zA-Z0-9-~+_.?#=&;,/:@%]|i', '', $value);
 			$v_path[$key] = $value;
 		}
-		if (phpversion() >= '4.1.0') {
-			$_SERVER['PATH_INFO'] = implode('/', $v_path);
-		}
-		global $HTTP_SERVER_VARS;
-		$HTTP_SERVER_VARS['PATH_INFO'] = implode('/', $v_path);
+		
+		$_SERVER['PATH_INFO'] = join('/', $v_path);
 
 // Admin area check
 		$tmpURL       = sprintf('http://%s%s', serverVar('HTTP_HOST'), serverVar('SCRIPT_NAME'));
