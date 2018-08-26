@@ -5,7 +5,6 @@ $CONF['Self']='';
 
 class NP_CustomURL extends NucleusPlugin
 {
-
 	public function getMinNucleusVersion() { return '372';}
 	public function getName()              { return 'Customized URL';}
 	public function getAuthor()            { return 'shizuki + nekonosippo + Cacher + Reine + yamamoto';}
@@ -325,18 +324,22 @@ class NP_CustomURL extends NucleusPlugin
 	{
 		global $CONF, $manager, $curl_blogid, $blogid, $itemid, $catid;
 		global $memberid, $archivelist, $archive, $query;
-// initialize
+		
+		// initialize
 		$info     =  $data['info'];
 		$complete =& $data['complete'];
 		if ($complete) {
 			return;
 		}
+		
 		$useCustomURL = $this->getAllBlogOptions('use_customurl');
-// Use NP_MultipleCategories ?
+		
+		// Use NP_MultipleCategories ?
 		$NP_MultipleCategories = $this->pluginCheck('MultipleCategories');
 		if ($NP_MultipleCategories) {
 			$param = array();
 			$NP_MultipleCategories->event_PreSkinParse($param);
+			
 			global $subcatid;
 			if (method_exists($NP_MultipleCategories, 'getRequestName')) {
 				$subrequest = $NP_MultipleCategories->getRequestName();
@@ -344,8 +347,8 @@ class NP_CustomURL extends NucleusPlugin
 				$subrequest = 'subcatid';
 			}
 		}
-
-// initialize and sanitize '$blogid'
+		
+		// initialize and sanitize '$blogid'
 		if (!$blogid) {
 			if ( getVar('blogid') ) {
 				if ( is_numeric(getVar('blogid')) ) {
@@ -417,6 +420,7 @@ class NP_CustomURL extends NucleusPlugin
 			$trush  = array_shift($v_path);
 			$bLink  = true;
 		}
+		
 		if ($useCustomURL[$blogid] == 'no') {
 			return;
 		}
@@ -886,8 +890,8 @@ class NP_CustomURL extends NucleusPlugin
 				$notFound = true;
 				$uri      = createBlogidLink($blogid);
 			} else {
-// Found
-// setting $CONF['Self'] for other plugins
+				// Found
+				// setting $CONF['Self'] for other plugins
 				$uri                    = createBlogidLink($blogid);
 				$CONF['Self']           = rtrim($uri, '/');
 				$CONF['BlogURL']        = rtrim($uri, '/');
@@ -1017,6 +1021,7 @@ class NP_CustomURL extends NucleusPlugin
 	public function event_GenerateURL($data)
 	{
 		global $CONF, $manager, $blogid;
+		
 		if ($data['completed']) {
 			return;
 		}
