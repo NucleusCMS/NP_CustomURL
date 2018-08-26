@@ -6,15 +6,15 @@ $CONF['Self']='';
 class NP_CustomURL extends NucleusPlugin
 {
 
-	function getMinNucleusVersion() { return '372';}
-	function getName()              { return 'Customized URL';}
-	function getAuthor()            { return 'shizuki + nekonosippo + Cacher + Reine + yamamoto';}
-	function getURL()               { return 'http://japan.nucleuscms.org/wiki/plugins:customurl';}
-	function getVersion()           { return '0.4.1';}
-	function getDescription()       { return _DESCRIPTION;}
-	function hasAdminArea()         { return 1;}
-	function getTableList()         { return array(parseQuery('[@prefix@]plug_customurl'));}
-	function supportsFeature($what)
+	public function getMinNucleusVersion() { return '372';}
+	public function getName()              { return 'Customized URL';}
+	public function getAuthor()            { return 'shizuki + nekonosippo + Cacher + Reine + yamamoto';}
+	public function getURL()               { return 'http://japan.nucleuscms.org/wiki/plugins:customurl';}
+	public function getVersion()           { return '0.4.1';}
+	public function getDescription()       { return _DESCRIPTION;}
+	public function hasAdminArea()         { return 1;}
+	public function getTableList()         { return array(parseQuery('[@prefix@]plug_customurl'));}
+	public function supportsFeature($what)
 	{
 		switch ($what) {
 			case 'SqlTablePrefix':
@@ -28,7 +28,7 @@ class NP_CustomURL extends NucleusPlugin
 	}
 
 
-	function event_QuickMenu(&$data)
+	public function event_QuickMenu(&$data)
 	{
 		global $member;
 		$quickLink   = ($this->getOption( 'customurl_quicklink') == 'yes');
@@ -46,7 +46,7 @@ class NP_CustomURL extends NucleusPlugin
 		);
 	}
 
-	function getEventList()
+	public function getEventList()
 	{
 		return	array(
 					  'QuickMenu',
@@ -75,7 +75,7 @@ class NP_CustomURL extends NucleusPlugin
 					 );
 	}
 
-	function install()
+	public function install()
 	{
 		// Can't install when faster requier Nucleus Core Version
 		$ver_min = (getNucleusVersion() < $this->getMinNucleusVersion());
@@ -204,7 +204,7 @@ class NP_CustomURL extends NucleusPlugin
 		}
 	}
 
-	function _createNewPath($type, $table_name, $field_name1, $field_name2)
+	private function _createNewPath($type, $table_name, $field_name1, $field_name2)
 	{
 		$ph['type']        = $type;
 		$ph['table_name']  = $table_name;
@@ -279,7 +279,7 @@ class NP_CustomURL extends NucleusPlugin
 		sql_query(parseQuery('DROP TABLE IF EXISTS [@prefix@]plug_customurl_temp'));
 	}
 
-	function init()
+	public function init()
 	{
 		$language = str_replace(array('\\','/'), '', getLanguageName());
 		$plugin_path = $this->getDirectory();
@@ -288,7 +288,7 @@ class NP_CustomURL extends NucleusPlugin
 		include_once("{$plugin_path}language/{$language}.php");
 	}
 
-	function pluginCheck($pluginName)
+	private function pluginCheck($pluginName)
 	{
 		global $manager;
 		if (!$manager->pluginInstalled('NP_' . $pluginName)) {
@@ -298,7 +298,7 @@ class NP_CustomURL extends NucleusPlugin
 		return $plugin;
 	}
 
-	function unInstall()
+	public function unInstall()
 	{
 		if ($this->getOption('customurl_tabledel') == 'yes') {
 			sql_query(parseQuery('DROP TABLE [@prefix@]plug_customurl'));
@@ -322,7 +322,7 @@ class NP_CustomURL extends NucleusPlugin
 		$this->deleteCategoryOption('customurl_cname');
 	}
 
-	function event_ParseURL($data)
+	public function event_ParseURL($data)
 	{
 		global $CONF, $manager, $curl_blogid, $blogid, $itemid, $catid;
 		global $memberid, $archivelist, $archive, $query;
@@ -968,7 +968,7 @@ class NP_CustomURL extends NucleusPlugin
 		}
 	}
 
-	function goNP_ExtraSkinJP()
+	private function goNP_ExtraSkinJP()
 	{
         global $CONF;
 		// under v3.2 needs this
@@ -989,7 +989,7 @@ class NP_CustomURL extends NucleusPlugin
 	}
 
 // decode 'path name' to 'id'
-	function getRequestPathInfo($linkObj)
+	private function getRequestPathInfo($linkObj)
 	{
 		$query = "SELECT obj_id as result FROM [@prefix@]plug_customurl WHERE obj_name='[@obj_name@]' AND obj_bid=[@bid@] AND obj_param='[@linkparam@]'";
 		$ph['obj_name']  = sql_real_escape_string($linkObj['name']);
@@ -1005,7 +1005,7 @@ class NP_CustomURL extends NucleusPlugin
 	}
 
 // Receive TrackBack ping
-	function _trackback($bid, $path)
+	private function _trackback($bid, $path)
 	{
 		$blog_id   = intval($bid);
 		$NP_TrackBack = $this->pluginCheck('TrackBack');
@@ -1036,7 +1036,7 @@ class NP_CustomURL extends NucleusPlugin
 		exit;
 	}
 
-	function event_GenerateURL($data)
+	public function event_GenerateURL($data)
 	{
 		global $CONF, $manager, $blogid;
 		if ($data['completed']) {
@@ -1271,7 +1271,7 @@ class NP_CustomURL extends NucleusPlugin
 			$ref_data = array_merge($data);
 	}
 
-	function _createSubCategoryLink($scid)
+	private function _createSubCategoryLink($scid)
 	{
 		$scids     = $this->getParents(intval($scid));
 		$subcat_ids = explode('/', $scids);
@@ -1304,7 +1304,7 @@ class NP_CustomURL extends NucleusPlugin
 		return $subcatPath . '/';
 	}
 
-	function getParents($subid)
+	private function getParents($subid)
 	{
 		$subid = intval($subid);
 		$NP_MultipleCategories  = $this->pluginCheck('MultipleCategories');
@@ -1324,7 +1324,7 @@ class NP_CustomURL extends NucleusPlugin
 		return $r;
 	}
 
-	function _generateCategoryLink($cid)
+	private function _generateCategoryLink($cid)
 	{
 		global $CONF;
 		$cat_id = intval($cid);
@@ -1349,7 +1349,7 @@ class NP_CustomURL extends NucleusPlugin
 		}
 	}
 
-	function _generateBlogLink($blog_id)
+	private function _generateBlogLink($blog_id)
 	{
 		global $manager, $CONF;
 		static $url = null;
@@ -1412,7 +1412,7 @@ class NP_CustomURL extends NucleusPlugin
 		return $url[$blog_id];
 	}
 
-	function _updateBlogURL($blog_url, $blog_id)
+	private function _updateBlogURL($blog_url, $blog_id)
 	{
 		return;
 		
@@ -1422,7 +1422,7 @@ class NP_CustomURL extends NucleusPlugin
 		sql_query(parseQuery("UPDATE [@prefix@]blog SET burl='[@blog_url@]' WHERE bnumber=[@blog_id@]", $ph));
 	}
 
-	function _addLinkParams($link, $params)
+	private function _addLinkParams($link, $params)
 	{
 		global $CONF, $manager, $catid;
 		$arcTmp      = (preg_match('/' . $this->getOption('customurl_archives') . '/', $link));
@@ -1511,7 +1511,7 @@ class NP_CustomURL extends NucleusPlugin
 		return $link;
 	}
 
-	function doSkinVar($skinType, $link_type = '', $target = '', $title = '')
+	public function doSkinVar($skinType, $link_type = '', $target = '', $title = '')
 	{
 		global $blogid;
 		if ($skinType == 'item' && $link_type == 'trackback') {
@@ -1559,7 +1559,7 @@ class NP_CustomURL extends NucleusPlugin
 		echo $this->URL_Callback($link_params);
 	}
 
-	function doItemVar(&$item, $link_type = '', $target = '', $title = '')
+	public function doItemVar(&$item, $link_type = '', $target = '', $title = '')
 	{
 		if (getNucleusVersion() < '330') {
 			return;
@@ -1582,7 +1582,7 @@ class NP_CustomURL extends NucleusPlugin
 		}
 	}
 
-	function doTemplateVar(&$item, $link_type = '', $target = '', $title = '')
+	public function doTemplateVar(&$item, $link_type = '', $target = '', $title = '')
 	{
 		$item_id = intval($item->itemid);
 		if ($link_type == 'trackback') {
@@ -1623,7 +1623,7 @@ class NP_CustomURL extends NucleusPlugin
 		}
 	}
 
-	function URL_Callback($data, $scatFlag = '')
+	private function URL_Callback($data, $scatFlag = '')
 	{
 		global $item_id;
 		
@@ -1686,7 +1686,7 @@ class NP_CustomURL extends NucleusPlugin
 		return $ObjLink;
 	}
 
-	function _isValid($data)
+	private function _isValid($data)
 	{
 		$query = "SELECT count(*) AS result FROM [@prefix@][@table_name@] WHERE [@key@]='[@value@]'";
 		$ph['table_name'] = $data[0];
@@ -1695,7 +1695,7 @@ class NP_CustomURL extends NucleusPlugin
 		return (intval(parseQuickQuery($query, $ph)) != 0);
 	}
 
-	function _genarateObjectLink($data, $scatFlag = '')
+	private function _genarateObjectLink($data, $scatFlag = '')
 	{
 		global $CONF, $manager, $blog;
 		$ext = substr(serverVar('REQUEST_URI'), -4);
@@ -1846,7 +1846,7 @@ class NP_CustomURL extends NucleusPlugin
 		return $url;
 	}
 
-	function event_InitSkinParse($data)
+	public function event_InitSkinParse($data)
 	{
 		global $blogid, $CONF, $manager, $nucleus;
 		$feedurl = array(
@@ -1952,7 +1952,7 @@ class NP_CustomURL extends NucleusPlugin
 		}
 	}
 
-	function getSkinContent($pageType, $skinID)
+	private function getSkinContent($pageType, $skinID)
 	{
 		$query = 'SELECT scontent FROM [@prefix@]skin WHERE sdesc=[@skinID@] AND stype=[@pageType@]';
 		$ph = array();
@@ -1966,7 +1966,7 @@ class NP_CustomURL extends NucleusPlugin
 	}
 
 // merge NP_RightURL
-	function event_PreSkinParse($data)
+	public function event_PreSkinParse($data)
 	{
 		global $CONF, $manager, $blog, $catid, $itemid, $subcatid;
 		global $memberid;
@@ -2007,7 +2007,7 @@ class NP_CustomURL extends NucleusPlugin
 //		$CONF['MemberURL']      = $blogurl;
 	}
 
-	function event_PreItem(&$data)
+	public function event_PreItem(&$data)
 	{
 		global $CONF, $manager, $itemid;
 
@@ -2040,7 +2040,7 @@ class NP_CustomURL extends NucleusPlugin
 //		$CONF['MemberURL']      = $blogurl;
 	}
 
-	function event_PostItem($data)
+	public function event_PostItem($data)
 	{
 		global $CONF, $manager, $blog;
 		if (!$blog) {
@@ -2079,7 +2079,7 @@ class NP_CustomURL extends NucleusPlugin
 	}
 // merge NP_RightURL end
 
-	function event_PostDeleteBlog ($data)
+	public function event_PostDeleteBlog ($data)
 	{
 		$blogid = intval($data['blogid']);
 		
@@ -2103,7 +2103,7 @@ class NP_CustomURL extends NucleusPlugin
 		}
 	}
 
-	function event_PostDeleteCategory ($data)
+	public function event_PostDeleteCategory ($data)
 	{
 		$ph['catid'] = (int)$data['catid'];
 		
@@ -2114,21 +2114,21 @@ class NP_CustomURL extends NucleusPlugin
 		sql_query(parseQuery($query, $ph));
 	}
 
-	function event_PostDeleteItem ($data)
+	public function event_PostDeleteItem ($data)
 	{
 		$query = "DELETE FROM [@prefix@]plug_customurl WHERE obj_param='item' AND obj_id=[@itemid@]";
 		$ph['itemid'] = (int)$data['itemid'];
 		sql_query(parseQuery($query, $ph));
 	}
 
-	function event_PostDeleteMember ($data)
+	public function event_PostDeleteMember ($data)
 	{
 		$query = "DELETE FROM [@prefix@]plug_customurl WHERE obj_param='member' AND obj_id=[@memberid@]";
 		$ph['memberid'] = (int)$data['member']->id;
 		sql_query(parseQuery($query, $ph));
 	}
 
-	function event_PostAddBlog ($data)
+	public function event_PostAddBlog ($data)
 	{
 		$blog_id    = intval($data['blog']->blogid);
 		$bshortname = $data['blog']->settings['bshortname'];
@@ -2136,7 +2136,7 @@ class NP_CustomURL extends NucleusPlugin
 		$this->setBlogOption($blog_id, 'customurl_bname', $bshortname);
 	}
 
-	function event_PostAddCategory ($data)
+	public function event_PostAddCategory ($data)
 	{
 		global $CONF;
 		$catid = intval($data['catid']);
@@ -2160,7 +2160,7 @@ class NP_CustomURL extends NucleusPlugin
 		$this->setCategoryOption($catid, 'customurl_cname', $catpsth);
 	}
 
-	function event_PostAddItem ($data)
+	public function event_PostAddItem ($data)
 	{
 		$itemid = (int)$data['itemid'];
 		$ph['itemid'] = $itemid;
@@ -2181,7 +2181,7 @@ class NP_CustomURL extends NucleusPlugin
 		}
 	}
 
-	function event_PostRegister ($data)
+	public function event_PostRegister ($data)
 	{
 		$memberID = intval($data['member']->id);
 		$dispName = $data['member']->displayname;
@@ -2189,17 +2189,17 @@ class NP_CustomURL extends NucleusPlugin
 		$this->setMemberOption($memberID, 'customurl_mname', $dispName);
 	}
 
-	function event_AddItemFormExtras(&$data)
+	public function event_AddItemFormExtras(&$data)
 	{
 		$this->createItemForm();
 	}
 
-	function event_EditItemFormExtras(&$data)
+	public function event_EditItemFormExtras(&$data)
 	{
 		$this->createItemForm(intval($data['itemid']));
 	}
 
-	function event_PostUpdateItem($data)
+	public function event_PostUpdateItem($data)
 	{
 		$itemid = intval($data['itemid']);
 		$ph['itemid'] = $itemid;
@@ -2223,7 +2223,7 @@ class NP_CustomURL extends NucleusPlugin
 		}
 	}
 
-	function createItemForm($itemid = 0)
+	private function createItemForm($itemid = 0)
 	{
 		global $CONF;
 		
@@ -2246,7 +2246,7 @@ class NP_CustomURL extends NucleusPlugin
 OUTPUT;
 	}
 
-	function event_PrePluginOptionsUpdate($data)
+	public function event_PrePluginOptionsUpdate($data)
 	{
 		$blog_option = ($data['optionname'] == 'customurl_bname');
 		$cate_option = ($data['optionname'] == 'customurl_cname');
@@ -2296,7 +2296,7 @@ OUTPUT;
 		return;
 	}
 
-	function event_PostMoveItem($data)
+	public function event_PostMoveItem($data)
 	{
 		$query = "UPDATE [@prefix@]plug_customurl SET obj_bid=[@destblogid@] WHERE obj_param='item' AND obj_id=[@item_id@]";
 		$ph['destblogid'] = (int)$data['destblogid'];
@@ -2304,7 +2304,7 @@ OUTPUT;
 		sql_query(parseQuery($query, $ph));
 	}
 
-	function event_PostMoveCategory($data)
+	public function event_PostMoveCategory($data)
 	{
 		$destblogid = (int)$data['destblog']->blogid;
 		$catid      = (int)$data['catid'];
@@ -2323,7 +2323,7 @@ OUTPUT;
 		}
 	}
 
-	function RegistPath($objID, $path, $bid, $oParam, $name, $new = false )
+	private function RegistPath($objID, $path, $bid, $oParam, $name, $new = false )
 	{
 		global $CONF;
 		switch($oParam) {
@@ -2428,7 +2428,7 @@ OUTPUT;
 		return $msg;
 	}
 
-	function error($msg = '')
+	private function error($msg = '')
 	{
 		global $admin;
 
@@ -2440,7 +2440,7 @@ OUTPUT;
 		return;
 	}
 
-	function convertLocalTrackbackURL($data)
+	private function convertLocalTrackbackURL($data)
 	{
 		global $manager, $CONF;
 		$ping_urls_count = 0;
@@ -2498,7 +2498,7 @@ OUTPUT;
 		$_REQUEST['trackback_ping_url'] = implode ("\n", $ping_urls);
 	}
 	
-	function hsc($string, $flags=ENT_QUOTES, $encoding='')
+	private function hsc($string, $flags=ENT_QUOTES, $encoding='')
 	{
 		if($encoding==='')
 		{
