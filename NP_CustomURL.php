@@ -382,7 +382,7 @@ class NP_CustomURL extends NucleusPlugin
 
 // Sanitize 'PATH_INFO'
 		$info   = trim($info, '/');
-		$v_path = explode("/", $info);
+		$v_path = explode('/', $info);
 		foreach($v_path as $key => $value) {
 			$value = urlencode($value);
 			$value = preg_replace('|[^a-zA-Z0-9-~+_.?#=&;,/:@%]|i', '', $value);
@@ -429,112 +429,104 @@ class NP_CustomURL extends NucleusPlugin
 			$queryURL = (strpos(serverVar('REQUEST_URI'), 'query=') !== false);
 			$search_q = (getVar('query') || $queryURL);
 			$redirectSearch = ($this->getBlogOption($blogid, 'redirect_search') == 'yes');
-			if ($redirectSearch) {
-				if ($search_q) {
-					$que_str     = hsc(getVar('query'));
-					$que_str = str_replace('/', md5('/'), $que_str);
-					$que_str = str_replace("'", md5("'"), $que_str);
-					$que_str = str_replace('&', md5('&'), $que_str);
-					$que_str     = urlencode($que_str);
-					$search_path = 'search/' . $que_str;
-					$b_url       = createBlogidLink($blogid);
-					$redurl      = sprintf('%s%s', $b_url, $search_path);
-					redirect($redurl); // 302 Moved temporary
-					exit;
-				}
-			}
-			
-			if (!$redirectSearch && $search_q) {
+			if ($redirectSearch && $search_q) {
+				$que_str     = hsc(getVar('query'));
+				$que_str = str_replace('/', md5('/'), $que_str);
+				$que_str = str_replace("'", md5("'"), $que_str);
+				$que_str = str_replace('&', md5('&'), $que_str);
+				$que_str     = urlencode($que_str);
+				$search_path = 'search/' . $que_str;
+				$b_url       = createBlogidLink($blogid);
+				$redurl      = sprintf('%s%s', $b_url, $search_path);
+				redirect($redurl); // 302 Moved temporary
+				exit;
+			} elseif (!$redirectSearch ) {
 				$isExtra = true;
 			} else {
 				$isExtra = false;
 			}
-
-// redirection nomal URL to FancyURL
-			$temp_req       = explode('?', serverVar('REQUEST_URI'));
-			$reqPath        = trim(end($temp_req), '/');
-			$isFeed         = in_array($reqPath, array('xml-rss1.php','atom.php','xml-rss2.php'));
-			$redirectNormal = ($this->getBlogOption($blogid, 'redirect_normal') == 'yes');
-			if ($redirectNormal && serverVar('QUERY_STRING') && !$isFeed && !$isExtra) {
-				$temp = explode('&', serverVar('QUERY_STRING'));
-				foreach ($temp as $k => $val) {
-					if (preg_match('/^virtualpath/', $val)) {
-						unset($temp[$k]);
-					}
-				}
-				if (!empty($temp)) {
-					$p_arr = array();
-					foreach ($temp as $key => $value) {
-						$p_key = explode('=', $value);
-						switch (reset($p_key)) {
-							case 'blogid';
-								$p_arr[] = $CONF['BlogKey'] . '/'
-										 . intGetVar('blogid');
-								unset($temp[$key]);
-								break;
-							case 'catid';
-								$p_arr[] = $CONF['CategoryKey'] . '/'
-										 . intGetVar('catid');
-								unset($temp[$key]);
-								break;
-							case 'itemid';
-								$p_arr[] = $CONF['ItemKey'] . '/'
-										 . intGetVar('itemid');
-								unset($temp[$key]);
-								break;
-							case 'memberid';
-								$p_arr[] = $CONF['MemberKey'] . '/'
-										 . intGetVar('memberid');
-								unset($temp[$key]);
-								break;
-							case 'archivelist';
-								$p_arr[] = $CONF['ArchivesKey'] . '/'
-										 . $blogid;
-								unset($temp[$key]);
-								break;
-							case 'archive';
-								$p_arr[] = $CONF['ArchiveKey'] . '/'
-										 . $blogid . '/' . getVar('archive');
-								unset($temp[$key]);
-								break;
-							default:
-								if(isset($subrequest) && $subrequest)
-								{
-									$p_arr[] = $subrequest . '/' . intGetVar($subrequest);
-									unset($temp[$key]);
-								}
+			
+			// redirection nomal URL to FancyURL
+			$temp_req = explode('?', serverVar('REQUEST_URI'));
+			$reqPath  = trim(end($temp_req), '/');
+			$isFeed   = in_array($reqPath, array('xml-rss1.php','atom.php','xml-rss2.php'));
+			
+			if ($this->getBlogOption($blogid, 'redirect_normal') == 'yes') {
+				if (serverVar('QUERY_STRING') && !$isFeed && !$isExtra) {
+					$temp = explode('&', serverVar('QUERY_STRING'));
+					foreach ($temp as $k => $val) {
+						if (preg_match('/^virtualpath/', $val)) {
+							unset($temp[$k]);
 						}
 					}
 					if (!empty($temp)) {
-						$queryTemp = '/?' . join('&', $temp);
-					}
-					if (reset($p_arr)) {
-						$b_url    = createBlogidLink($blogid);
-						$red_path = '/' . join('/', $p_arr);
-						if (substr($b_url, -1) == '/') {
-							$b_url = rtrim($b_url, '/');
+						$p_arr = array();
+						foreach ($temp as $key => $value) {
+							$p_key = explode('=', $value);
+							switch (reset($p_key)) {
+								case 'blogid';
+									$p_arr[] = $CONF['BlogKey'] . '/' . intGetVar('blogid');
+									unset($temp[$key]);
+									break;
+								case 'catid';
+									$p_arr[] = $CONF['CategoryKey'] . '/' . intGetVar('catid');
+									unset($temp[$key]);
+									break;
+								case 'itemid';
+									$p_arr[] = $CONF['ItemKey'] . '/' . intGetVar('itemid');
+									unset($temp[$key]);
+									break;
+								case 'memberid';
+									$p_arr[] = $CONF['MemberKey'] . '/' . intGetVar('memberid');
+									unset($temp[$key]);
+									break;
+								case 'archivelist';
+									$p_arr[] = $CONF['ArchivesKey'] . '/' . $blogid;
+									unset($temp[$key]);
+									break;
+								case 'archive';
+									$p_arr[] = $CONF['ArchiveKey'] . '/' . $blogid . '/' . getVar('archive');
+									unset($temp[$key]);
+									break;
+								default:
+									if(isset($subrequest) && $subrequest)
+									{
+										$p_arr[] = $subrequest . '/' . intGetVar($subrequest);
+										unset($temp[$key]);
+									}
+							}
 						}
-						$redurl = sprintf("%s%s", $b_url, $red_path) . $queryTemp;
-						header('Location: ' . $redurl, true, 301);
-						exit;
+						if (!empty($temp)) {
+							$queryTemp = '/?' . join('&', $temp);
+						}
+						if (reset($p_arr)) {
+							$b_url    = createBlogidLink($blogid);
+							$red_path = '/' . join('/', $p_arr);
+							if (substr($b_url, -1) == '/') {
+								$b_url = rtrim($b_url, '/');
+							}
+							$redurl = sprintf('%s%s', $b_url, $red_path) . $queryTemp;
+							header('Location: ' . $redurl, true, 301);
+							exit;
+						}
 					}
+				} elseif ($isFeed) {
+					$b_url = rtrim(createBlogidLink($blogid), '/');
+					switch ($reqPath) {
+						case 'xml-rss1.php':
+							$feed_code = '/index.rdf';
+							break;
+						case 'xml-rss2.php':
+							$feed_code = '/rss2.xml';
+							break;
+						case 'atom.php':
+							$feed_code = '/atom.xml';
+							break;
+					}
+					// HTTP status 301 "Moved Permanentry"
+					header('Location: ' . $b_url . $feed_code, true, 301);
+					exit;
 				}
-			} elseif ($redirectNormal && $isFeed) {
-				$b_url = rtrim(createBlogidLink($blogid), '/');
-				switch ($reqPath) {
-					case 'xml-rss1.php':
-						$feed_code = '/index.rdf';
-						break;
-					case 'xml-rss2.php':
-						$feed_code = '/rss2.xml';
-						break;
-					case 'atom.php':
-						$feed_code = '/atom.xml';
-						break;
-				}
-				// HTTP status 301 "Moved Permanentry"
-				header('Location: ' . $b_url . $feed_code, true, 301);
-				exit;
 			}
 		}
 // decode path_info
@@ -962,10 +954,10 @@ class NP_CustomURL extends NucleusPlugin
 			header('Location: ' . $CONF['DisableSiteURL'], true, 302);
 			exit;
 		}
-		$extraParams = explode("/", serverVar('PATH_INFO'));
+		$extraParams = explode('/', serverVar('PATH_INFO'));
 		array_shift ($extraParams);
 
-		if (isset($extraParams[1]) && preg_match("/^([1-9]+[0-9]*)(\?.*)?$/", $extraParams[1], $matches)) {
+		if (isset($extraParams[1]) && preg_match('/^([1-9]+[0-9]*)(\?.*)?$/', $extraParams[1], $matches)) {
 			$extraParams[1] = $matches[1];
 		}
 
@@ -1236,7 +1228,7 @@ class NP_CustomURL extends NucleusPlugin
 			}
 			$data['completed'] = true;
 			if (strstr ($data['url'], '//')) {
-				$link = preg_replace("/([^:])\/\//", "$1/", $data['url']);
+				$link = preg_replace('/([^:])\/\//', "$1/", $data['url']);
 			}
 			//$tempdeb=debug_backtrace();
 			$tb = 0;
@@ -1493,7 +1485,7 @@ class NP_CustomURL extends NucleusPlugin
 			}
 		}
 		if (strstr ($link, '//')) {
-			$link = preg_replace("/([^:])\/\//", "$1/", $link);
+			$link = preg_replace('/([^:])\/\//', "$1/", $link);
 		}
 		return $link;
 	}
@@ -1525,7 +1517,7 @@ class NP_CustomURL extends NucleusPlugin
 			$link_params = array(0, 'b/' . (int)$blogid . '/i,'
 						 . $target . ',' . $title);
 		} else {
-			$l_params = explode("/", $link_type);
+			$l_params = explode('/', $link_type);
 			if (count($l_params) == 1) {
 				$link_params = array(0, 'b/' . (int)$link_type . '/i,'
 							 . $target . ',' . $title);
@@ -1605,7 +1597,7 @@ class NP_CustomURL extends NucleusPlugin
 	{
 		global $item_id;
 		
-		$l_data  = explode(",", $data[1]);
+		$l_data  = explode(',', $data[1]);
 		$l_type  = $l_data[0];
 		$target  = $l_data[1];
 		$title   = $l_data[2];
@@ -1618,7 +1610,7 @@ class NP_CustomURL extends NucleusPlugin
 								  'i'
 								 );
 		} else {
-			$link_data = explode("/", $l_type);
+			$link_data = explode('/', $l_type);
 			if (count($link_data) == 1) {
 				$link_params = array (
 									  'i',
@@ -1847,7 +1839,7 @@ class NP_CustomURL extends NucleusPlugin
 			$data['skin']->changeSkinByName($skinName);
 		} else {
 			$newSkinId = SKIN::getIdFromName($skinName);
-			if(method_exists($data['skin'], "SKIN")) {
+			if(method_exists($data['skin'], 'SKIN')) {
 				$data['skin']->SKIN($newSkinId);
 			} else {
 				$data['skin']->__construct($newSkinId);
@@ -2443,7 +2435,7 @@ OUTPUT;
 			
 			$tmp_url         = parse_url($ping_urls[$i]);
 			$tmp_url['path'] = trim($tmp_url['path'], '/');
-			$path_arr        = explode("/", $tmp_url['path']);
+			$path_arr        = explode('/', $tmp_url['path']);
 			$tail            = end($path_arr);
 			$linkObj         = array (
 									  'linkparam' => 'item',
