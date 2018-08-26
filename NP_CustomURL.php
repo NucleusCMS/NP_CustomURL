@@ -69,7 +69,6 @@ class NP_CustomURL extends NucleusPlugin
 		}
 		
 		$v_path = explode('/', $this->get_path_info($data));
-		$_SERVER['PATH_INFO'] = join('/', $v_path);
 
 // get real blogid
 		$linkObj = array (
@@ -651,10 +650,10 @@ class NP_CustomURL extends NucleusPlugin
 	private function get_path_info($data)
 	{
 		if(isset($data['info']) && $data['info']) {
-			$info = $data['info'];
+			$v_path = $data['info'];
 		}
 		elseif (serverVar('PATH_INFO')) {
-			$info = serverVar('PATH_INFO');
+			$v_path = serverVar('PATH_INFO');
 		}
 		elseif(serverVar('REQUEST_URI')) {
 			$uri = serverVar('REQUEST_URI');
@@ -662,15 +661,18 @@ class NP_CustomURL extends NucleusPlugin
 			if ($pos) {
 				$uri = substr($uri, 0, $pos);
 			}
-			$info = $uri; 
+			$v_path = $uri; 
 		}
 		else {
 			return; 
 		} //by nekonosippo 2008-04-06 http://japan.nucleuscms.org/bb/viewtopic.php?p=22351#22351
 
 		// Sanitize 'PATH_INFO'
-		$info   = trim($info, '/');
-		return $info;
+		$v_path   = trim($v_path, '/');
+		if(!isset($_SERVER['PATH_INFO'])) {
+			$_SERVER['PATH_INFO'] = $v_path;
+		}
+		return $v_path;
 	}
 	
 	private function redirectFancyURLtoCustomURL($customurl)
