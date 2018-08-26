@@ -443,20 +443,19 @@ class NP_CustomURL extends NucleusPlugin
 					exit;
 				}
 			}
-			$exLink = false;
+			
 			if (!$redirectSearch && $search_q) {
-				$exLink = true;
+				$isExtra = true;
+			} else {
+				$isExtra = false;
 			}
 
 // redirection nomal URL to FancyURL
 			$temp_req       = explode('?', serverVar('REQUEST_URI'));
 			$reqPath        = trim(end($temp_req), '/');
-			$indexrdf       = ($reqPath == 'xml-rss1.php');
-			$atomfeed       = ($reqPath == 'atom.php');
-			$rss2feed       = ($reqPath == 'xml-rss2.php');
-			$feeds          = ($indexrdf || $atomfeed || $rss2feed);
+			$isFeed         = in_array($reqPath, array('xml-rss1.php','atom.php','xml-rss2.php'));
 			$redirectNormal = ($this->getBlogOption($blogid, 'redirect_normal') == 'yes');
-			if ($redirectNormal && serverVar('QUERY_STRING') && !$feeds && !$exLink) {
+			if ($redirectNormal && serverVar('QUERY_STRING') && !$isFeed && !$isExtra) {
 				$temp = explode('&', serverVar('QUERY_STRING'));
 				foreach ($temp as $k => $val) {
 					if (preg_match('/^virtualpath/', $val)) {
@@ -507,11 +506,11 @@ class NP_CustomURL extends NucleusPlugin
 						}
 					}
 					if (!empty($temp)) {
-						$queryTemp = '/?' . implode('&', $temp);
+						$queryTemp = '/?' . join('&', $temp);
 					}
 					if (reset($p_arr)) {
 						$b_url    = createBlogidLink($blogid);
-						$red_path = '/' . implode('/', $p_arr);
+						$red_path = '/' . join('/', $p_arr);
 						if (substr($b_url, -1) == '/') {
 							$b_url = rtrim($b_url, '/');
 						}
@@ -520,7 +519,7 @@ class NP_CustomURL extends NucleusPlugin
 						exit;
 					}
 				}
-			} elseif ($redirectNormal && $feeds) {
+			} elseif ($redirectNormal && $isFeed) {
 				$b_url = rtrim(createBlogidLink($blogid), '/');
 				switch ($reqPath) {
 					case 'xml-rss1.php':
@@ -540,15 +539,6 @@ class NP_CustomURL extends NucleusPlugin
 		}
 // decode path_info
 
-// decode unofficial Page switch '/page_2.html'
-/*		foreach($v_path as $pathName) {
-			if (preg_match('/^page_/', $pathName)) {
-				$temp_info    = explode('page_', $pathName);
-				$_GET['page'] = intval($temp_info[1]);
-				$page         = array_pop($v_path);
-			}
-		}*/
-
 // decode TrackBack URL shorten ver.
 		$tail = end($v_path);
 		if (substr($tail, -10, 10) == '.trackback') {
@@ -562,36 +552,36 @@ class NP_CustomURL extends NucleusPlugin
 		}
 
 // decode other type URL
-//		$bLink = $cLink = $iLink = $exLink = false;
-		$cLink = $iLink = $exLink = false;
+		$isCategory = false;
+		$isItem = false;
+		$isExtra = false;
 
 		$i = 1;
-		$hasNP_ExtraSkinJP = false;
-		$redURI = null;
 		$sc = null;
 		foreach($v_path as $pathName) {
 			if(!isset($subrequest)) $subrequest = null;
 			switch ($pathName) {
-// decode FancyURLs and redirection to Customized URL
-				// for blogsgetAllBlogOptions($name)
 				case $CONF['BlogKey']:
+					// decode FancyURLs and redirection to Customized URL
+					// for blogsgetAllBlogOptions($name)
 					if (isset($v_path[$i]) && is_numeric($v_path[$i])) {
 						if ($useCustomURL[(int)$v_path[$i]] != 'yes') {
 							$blogid = (int)$v_path[$i];
-							$bLink  = true;
 						} else {
-							$redURI = createBlogidLink(intval($v_path[$i]));
+							$this->redirectFancyURLtoCustomURL(createBlogidLink((int)$v_path[$i]));
+							exit;
 						}
 					}
 					break;
-				// for items
 				case $CONF['ItemKey']:
+					// for items
 					if (isset($v_path[$i]) && is_numeric($v_path[$i])) {
 						if ($useCustomURL[$blogid] != 'yes') {
 							$itemid = (int)$v_path[$i];
-							$iLink  = true;
+							$isItem  = true;
 						} else {
-							$redURI = createItemLink(intval($v_path[$i]));
+							$this->redirectFancyURLtoCustomURL(createItemLink((int)$v_path[$i]));
+							exit;
 						}
 					}
 					break;
@@ -600,10 +590,11 @@ class NP_CustomURL extends NucleusPlugin
 				case 'catid':
 					if (isset($v_path[$i]) && is_numeric($v_path[$i])) {
 						if ($useCustomURL[$blogid] != 'yes') {
-							$catid  = intval($v_path[$i]);
-							$cLink  = true;
+							$catid  = (int)$v_path[$i];
+							$isCategory  = true;
 						} else {
-							$redURI = createCategoryLink(intval($v_path[$i]));
+							$this->redirectFancyURLtoCustomURL(createCategoryLink((int)$v_path[$i]));
+							exit;
 						}
 					}
 					break;
@@ -615,12 +606,13 @@ class NP_CustomURL extends NucleusPlugin
 						if ($useCustomURL[$blogid] != 'yes') {
 							$subcatid  = (int)$v_path[$i];
 							$catid     = (int)$v_path[$c];
-							$cLink     = true;
+							$isCategory     = true;
 						} else {
 							$subcat_id = (int)$v_path[$i];
 							$catid     = (int)$v_path[$c];
 							$linkParam = array($subrequest => $subcat_id);
-							$redURI    = createCategoryLink($catid, $linkParam);
+							$this->redirectFancyURLtoCustomURL(createCategoryLink($catid, $linkParam));
+							exit;
 						}
 					}
 					break;
@@ -629,20 +621,22 @@ class NP_CustomURL extends NucleusPlugin
 				case $this->getOption('customurl_archives'):
 				// FancyURL
 					if (isset($v_path[$i]) && is_numeric($v_path[$i])) {
-						if ($useCustomURL[intval($v_path[$i])] != 'yes') {
-							$archivelist = intval($v_path[$i]);
+						if ($useCustomURL[(int)$v_path[$i]] != 'yes') {
+							$archivelist = (int)$v_path[$i];
 							$blogid      = $archivelist;
-							$exLink      = true;
+							$isExtra     = true;
 						} else {
-							$redURI      = createArchiveListLink(intval($v_path[$i]));
+							$this->redirectFancyURLtoCustomURL(createArchiveListLink((int)$v_path[$i]));
+							exit;
 						}
 				// Customized URL
 					} elseif (isset($v_path[$i]) && strpos($v_path[$i], 'page') === false) {
 						$archivelist = $blogid;
-						$redURI      = createArchiveListLink($archivelist);
+						$this->redirectFancyURLtoCustomURL(createArchiveListLink($archivelist));
+						exit;
 					} else {
 						$archivelist = $blogid;
-						$exLink      = true;
+						$isExtra     = true;
 					}
 					break;
 				// for archive
@@ -664,7 +658,7 @@ class NP_CustomURL extends NucleusPlugin
 						$arc   = (!$darc && !$marc && !$yarc);
 						$aarc  = ($adarc || $amarc || $ayarc);
 						$carc  = ($darc || $marc || $yarc);
-				// FancyURL
+						// FancyURL
 						if (is_numeric($v_path[$i]) && $arc && isset($v_path[$ar]) && $aarc) {
 								sscanf($v_path[$ar], '%d-%d-%d', $y, $m, $d);
 							if (!empty($d)) {
@@ -676,12 +670,13 @@ class NP_CustomURL extends NucleusPlugin
 							}
 							if ($useCustomURL[(int)$v_path[$i]] != 'yes') {
 								$blogid  = (int)$v_path[$i];
-								$exLink = true;
+								$isExtra = true;
 							} else {
 								$blogid = (int)$v_path[$i];
-								$redURI = createArchiveLink($blogid, $archive);
+								$this->redirectFancyURLtoCustomURL(createArchiveLink($blogid, $archive));
+								exit;
 							}
-				// Customized URL
+						// Customized URL
 						} elseif ($carc) {
 							sscanf($v_path[$i], '%d-%d-%d', $y, $m, $d);
 							if (!empty($d)) {
@@ -691,12 +686,14 @@ class NP_CustomURL extends NucleusPlugin
 							} else {
 								$archive = sprintf('%04d',           $y);
 							}
-							$exLink = true;
+							$isExtra = true;
 						} else {
-							$redURI = createArchiveListLink($blogid);
+							$this->redirectFancyURLtoCustomURL(createArchiveListLink($blogid));
+							exit;
 						}
 					} else {
-						$redURI = createArchiveListLink($blogid);
+						$this->redirectFancyURLtoCustomURL(createArchiveListLink($blogid));
+						exit;
 					}
 					break;
 				// for member
@@ -712,31 +709,34 @@ class NP_CustomURL extends NucleusPlugin
 										   );
 						$member_id  = $this->getRequestPathInfo($memberInfo);
 						$memberid   = (int)$member_id;
-						$exLink     = true;
+						$isExtra    = true;
 				// FancyURL
 					} elseif (isset($v_path[$i]) && is_numeric($v_path[$i])) {
 						if ($useCustomURL[$blogid] != 'yes') {
 							$memberid = (int)$v_path[$i];
-							$exLink   = true;
+							$isExtra  = true;
 						} else {
-							$redURI = createMemberLink(intval($v_path[$i]));
+							$this->redirectFancyURLtoCustomURL(createMemberLink((int)$v_path[$i]));
+							exit;
 						}
 					} else {
-						$redURI = createBlogidLink($blogid);
+						$this->redirectFancyURLtoCustomURL(createBlogidLink($blogid));
+						exit;
 					}
 					break;
 				// for tag
 				// for pageswitch
 				case 'tag':
-					if ($this->pluginCheck(TagEX)) $exLink = true;
+					if ($this->pluginCheck(TagEX)) $isExtra = true;
 					break;//2008-07-28 http://japan.nucleuscms.org/bb/viewtopic.php?p=23175#23175
 				case 'page':
-						$exLink = true;
+						$isExtra = true;
 					break;
 				// for ExtraSkinJP
 				case 'extra':
 					if ($manager->pluginInstalled('NP_ExtraSkinJP')) {
-						$hasNP_ExtraSkinJP = true;
+						$this->goNP_ExtraSkinJP();
+						exit;
 					}
 					break;
 				// for search query
@@ -750,7 +750,7 @@ class NP_CustomURL extends NucleusPlugin
 						$que_str       = htmlspecialchars_decode($que_str);
 						$_GET['query'] = $que_str;
 						$query         = $que_str;
-						$exLink        = true;
+						$isExtra       = true;
 					}
 					break;
 				// for tDiarySkin
@@ -759,7 +759,7 @@ class NP_CustomURL extends NucleusPlugin
 				case 'monthlimit':
 					if ($this->pluginCheck('tDiarySkin') && isset($v_path[$i])) {
 						$_GET[$pathName] = $v_path[$i];
-						$exLink          = true;
+						$isExtra         = true;
 					}
 					break;
 				case 'special':
@@ -767,7 +767,7 @@ class NP_CustomURL extends NucleusPlugin
 					if (isset($v_path[$i]) && is_string($v_path[$i])) {
 						global $special;
 						$special = $v_path[$i];
-						$exLink  = true;
+						$isExtra = true;
 					}
 					break;
 				// for trackback
@@ -780,31 +780,33 @@ class NP_CustomURL extends NucleusPlugin
 
 // decode Customized URL
 				default:
-				// initialyze
+					// initialyze
 					$linkObj = array (
 									  'bid'  => $blogid,
 									  'name' => $pathName
 									 );
 					$comp   = false;
 					$isItem = (substr($pathName, -5) == '.html');
-				// category ?
-					if (!$comp && !$cLink && !$iLink && !$isItem && !$exLink) {//2007-10-06 http://japan.nucleuscms.org/bb/viewtopic.php?p=20641#20641
+					
+					// category ?
+					if (!$isCategory && !$isItem && !$isExtra) {
+						//2007-10-06 http://japan.nucleuscms.org/bb/viewtopic.php?p=20641#20641
 						$linkObj['linkparam'] = 'category';
-						$cat_id               = $this->getRequestPathInfo($linkObj);
-						if (!empty($cat_id)) {
+						$catid               = $this->getRequestPathInfo($linkObj);
+						if (!empty($catid)) {
 							$catid = (int)$catid;
-							$cLink = true;
+							$isCategory = true;
 							$comp  = true;
 						}
 					}
-				// subcategory ?
-					if (!$comp && $cLink && !$iLink && $NP_MultipleCategories && !$isItem && !$exLink) {//2007-10-06 http://japan.nucleuscms.org/bb/viewtopic.php?p=20641#20641
+					// subcategory ?
+					if (!$comp && $isCategory && !$isItem && $NP_MultipleCategories && !$isExtra) {//2007-10-06 http://japan.nucleuscms.org/bb/viewtopic.php?p=20641#20641
 						$linkObj['linkparam'] = 'subcategory';
 						$linkObj['bid']       = $catid;
 						$subcat_id            = $this->getRequestPathInfo($linkObj);
 						if (!empty($subcat_id)) {
-							$_REQUEST[$subrequest] = intval($subcat_id);
-							$subcatid              = intval($subcat_id);
+							$_REQUEST[$subrequest] = (int)$subcat_id;
+							$subcatid              = (int)$subcat_id;
 							$sc                    = $i;
 							$comp                  = true;
 						}
@@ -814,47 +816,23 @@ class NP_CustomURL extends NucleusPlugin
 						$linkObj['linkparam'] = 'item';
 						$item_id              = $this->getRequestPathInfo($linkObj);
 						if (!empty($item_id)) {
-							$itemid = intval($item_id);
-							$iLink  = true;
+							$itemid = (int)$item_id;
+							$isItem  = true;
 						}
 						if (preg_match('/^page_/', $pathName)) {
-							$iLink  = true;
+							$isItem  = true;
 						}
 //var_dump($linkObj);
 					}
 					break;
 			}
 			if (preg_match('/^[0-9page]$/', $pathName)) {
-				$exLink = $pathName;
+				$isExtra = true;
 			}
 			$i++;
 		}
 
-		if ($hasNP_ExtraSkinJP) {
-			$this->goNP_ExtraSkinJP();
-		}
-
-// FancyURL redirect to Customized URL if use it
-// HTTP status 301 "Moved Permanentry"
-		if ($redURI) {
-			if (strpos(serverVar('REQUEST_URI'), '?') !== false) {
-				list($trush, $tempQueryString) = explode('?', serverVar('REQUEST_URI'), 2);
-			}
-			if ($tempQueryString) {
-				$temp = explode('&', $tempQueryString);
-				foreach ($temp as $k => $val) {
-					if (preg_match('/^virtualpath/', $val)) {
-						unset($temp[$k]);
-					}
-				}
-				if (!empty($temp)) {
-					$tempQueryString = '?' . implode('&', $temp);
-				}
-			}
-			header('Location: ' . $redURI . $tempQueryString, true, 301);
-			exit;
-		}
-		$feedurl = array(
+		$feedurls = array(
 						 'rss1.xml',
 						 'index.rdf',
 						 'rss2.xml',
@@ -867,25 +845,27 @@ class NP_CustomURL extends NucleusPlugin
 		if ($NP_GoogleSitemap) {
 			$pcSitemaps = $NP_GoogleSitemap->getAllBlogOptions('PcSitemap');
 			foreach ($pcSitemaps as $pCsitemap) {
-				if ($pCsitemap) {
-					$feedurl[] = $pCsitemap;
+				if (!$pCsitemap) {
+					continue;
 				}
+				$feedurls[] = $pCsitemap;
 			}
 			$mobSitemaps = $NP_GoogleSitemap->getAllBlogOptions('MobileSitemap');
 			foreach ($mobSitemaps as $mobSitemap) {
-				if ($mobSitemap) {
-					$feedurl[] = $mobSitemap;
+				if (!$mobSitemap) {
+					continue;
 				}
+				$feedurls[] = $mobSitemap;
 			}
 		}
-		$feedurl      = array_unique($feedurl);
+		$feedurls     = array_unique($feedurls);
 		$request_path = end($v_path);
-		$feeds        = in_array($request_path, $feedurl, true);
+		$isFeed       = in_array($request_path, $feedurls, true);
 
 // finish decode
-		if (!$exLink && !$feeds) {
+		if (!$isExtra && !$isFeed) {
 // URL Not Found
-			if (substr(end($v_path), -5) == '.html' && !$iLink) {
+			if (substr(end($v_path), -5) == '.html' && !$isItem) {
 				$notFound = true;
 				if (!empty($subcatid)) {
 					$linkParam = array(
@@ -897,20 +877,20 @@ class NP_CustomURL extends NucleusPlugin
 				} else {
 					$uri = createBlogidLink($blogid);
 				}
-			} elseif (count($v_path) > $sc && !empty($subcatid) && !$iLink) {
+			} elseif (count($v_path) > $sc && !empty($subcatid) && !$isItem) {
 				$notFound  = true;
 				$linkParam = array(
 								   $subrequest => $subcatid
 								  );
 				$uri       = createCategoryLink($catid, $linkParam);
-			} elseif (count($v_path) >= 2 && (!isset($subcatid)||!$subcatid) && !$iLink) {
+			} elseif (count($v_path) >= 2 && (!isset($subcatid)||!$subcatid) && !$isItem) {
 				$notFound = true;
 				if (isset($catid)) {
 					$uri = createCategoryLink($catid);
 				} else {
 					$uri = createBlogidLink($blogid);
 				}
-			} elseif (reset($v_path) && !$catid && (!isset($subcatid)||!$subcatid) && !$iLink) {
+			} elseif (reset($v_path) && !$catid && (!isset($subcatid)||!$subcatid) && !$isItem) {
 				$notFound = true;
 				$uri      = createBlogidLink($blogid);
 			} else {
@@ -946,13 +926,34 @@ class NP_CustomURL extends NucleusPlugin
 				header('HTTP/1.1 404 Not Found');
 				doError(_NO_SUCH_URI);
 				exit;
-			} else {
-				header('Location: ' . $uri, true, 303);
-				exit;
 			}
+			header('Location: ' . $uri, true, 303);
+			exit;
 		}
 	}
 
+	private function redirectFancyURLtoCustomURL($customurl)
+	{
+		// FancyURL redirect to Customized URL if use it
+		// HTTP status 301 "Moved Permanentry"
+		if (strpos(serverVar('REQUEST_URI'), '?') !== false) {
+			list($null, $tempQueryString) = explode('?', serverVar('REQUEST_URI'), 2);
+			if ($tempQueryString) {
+				$temp = explode('&', $tempQueryString);
+				foreach ($temp as $k => $val) {
+					if (preg_match('/^virtualpath/', $val)) {
+						unset($temp[$k]);
+					}
+				}
+				if (!empty($temp)) {
+					$tempQueryString = '?' . join('&', $temp);
+				}
+			}
+		}
+		header('Location: ' . $customurl . $tempQueryString, true, 301);
+		exit;
+	}
+	
 	private function goNP_ExtraSkinJP()
 	{
         global $CONF;
@@ -1203,13 +1204,14 @@ class NP_CustomURL extends NucleusPlugin
 		$tempdeb=debug_backtrace();
 		$denyPlugin = false;
 		foreach($tempdeb as $k => $v){
-			if (array_key_exists('class', $v)) {
-				$analyzePlugin = (strtolower($v['class']) == 'np_analyze');
-				$sitemapPlugin = (strtolower($v['class']) == 'np_googlesitemap' || 
-								  strtolower($v['class']) == 'np_seositemaps');
-				if ($analyzePlugin || $sitemapPlugin) {
-					$denyPlugin = true;
-				}
+			if (!isset($v['class'])) {
+				continue;
+			}
+			$analyzePlugin = (strtolower($v['class']) == 'np_analyze');
+			$sitemapPlugin = (strtolower($v['class']) == 'np_googlesitemap' || 
+							  strtolower($v['class']) == 'np_seositemaps');
+			if ($analyzePlugin || $sitemapPlugin) {
+				$denyPlugin = true;
 			}
 		}
 
@@ -1217,7 +1219,7 @@ class NP_CustomURL extends NucleusPlugin
 			$params['extra'] = array();
 		}
 		if ($objPath || $data['type'] == 'blog') {
-			$LinkURI = $this->_addLinkParams($objPath, (array_key_exists('extra', $params) ? $params['extra'] : ''));
+			$LinkURI = $this->_addLinkParams($objPath, (isset($params['extra']) ? $params['extra'] : ''));
 			if ($LinkURI) {
 				$data['url'] = $burl . '/' . $LinkURI;
 			} else {
@@ -1229,7 +1231,7 @@ class NP_CustomURL extends NucleusPlugin
 			$isItem      = (substr($data['url'], -5, 5) == '.html');
 			$isDirectory = (substr($data['url'], -1) == '/');
 			$puri        = parse_url($data['url']);
-			if (!$isItem && !$isDirectory && !array_key_exists('query', $puri)) {
+			if (!$isItem && !$isDirectory && !isset($puri['query'])) {
 				$data['url'] .= '/';
 			}
 			$data['completed'] = true;
@@ -1239,7 +1241,7 @@ class NP_CustomURL extends NucleusPlugin
 			//$tempdeb=debug_backtrace();
 			$tb = 0;
 			foreach($tempdeb as $k => $v){
-				if (array_key_exists('class', $v) && array_key_exists('function', $v)
+				if (isset($v['class']) && isset($v['function'])
 					&& strtolower($v['class']) == 'np_trackback' 
 					&& strtolower($v['function']) == 'gettrackbackurl') {
 					$tb = 1;
@@ -1426,13 +1428,13 @@ class NP_CustomURL extends NucleusPlugin
 		}
 		$linkExtra = '';
 		if (is_array($params)) {
-			if (array_key_exists('archives', $params)) {
+			if (isset($params['archives'])) {
 				$linkExtra = $this->getOption('customurl_archives') . '/';
 				unset($params['archives']);
-			} elseif (array_key_exists('archivelist', $params)) {
+			} elseif (isset($params['archivelist'])) {
 				$linkExtra = $this->getOption('customurl_archives') . '/';
 				unset($params['archivelist']);
-			} elseif (array_key_exists('archive', $params)) {
+			} elseif (isset($params['archive'])) {
 				$y = $m = $d = '';
 				sscanf($params['archive'], '%d-%d-%d', $y, $m, $d);
 				if ($d) {
@@ -1445,7 +1447,7 @@ class NP_CustomURL extends NucleusPlugin
 				$linkExtra = $this->getOption('customurl_archive') . '/' . $arc;
 				unset($params['archive']);
 			}
-			if (array_key_exists('blogid', $params)) {
+			if (isset($params['blogid'])) {
 				unset($params['blogid']);
 			}
 			$paramlink = array();
@@ -1468,9 +1470,9 @@ class NP_CustomURL extends NucleusPlugin
 				}
 			}
 			if (substr($link, -5, 5) == '.html' || $isArchives) {
-				$link = implode('', $paramlink) . $link;
+				$link = join('', $paramlink) . $link;
 			} else {
-				$link .= implode('', $paramlink);
+				$link .= join('', $paramlink);
 			}
 		}
 		if ($linkExtra) {
@@ -1519,15 +1521,6 @@ class NP_CustomURL extends NucleusPlugin
 			echo $uri;
 			return;
 		}
-		// $data == type / id || name / 'i'd || 'n'ame
-		// ex. =>	[(b)log / blogid [|| shortname / 'i'd || 'n'ame]]
-		//			(c)at  / catid [|| cname / 'i'd || 'n'ame]
-		//			(s)cat / subcatid [|| sname / 'i'd || 'n'ame]
-		//			[(i)tem /] itemid [/ 'path']
-		//			(m)ember / mnumber [|| mname / 'i'd || 'n'ame]
-		//
-		// if second param is null, third param is id
-		// if param is null, generate blog link
 		if (!$link_type) {
 			$link_params = array(0, 'b/' . (int)$blogid . '/i,'
 						 . $target . ',' . $title);
@@ -1546,7 +1539,7 @@ class NP_CustomURL extends NucleusPlugin
 
 	public function doItemVar(&$item, $link_type = '', $target = '', $title = '')
 	{
-		if (getNucleusVersion() < '330') {
+		if (getNucleusVersion() < '370') {
 			return;
 		}
 		$item_id = (int)$item->itemid;
@@ -1617,7 +1610,7 @@ class NP_CustomURL extends NucleusPlugin
 		$target  = $l_data[1];
 		$title   = $l_data[2];
 		
-		$item_id = isset($data['item']->itemid) ? intval($data['item']->itemid) : 0;
+		$item_id = isset($data['item']->itemid) ? (int)$data['item']->itemid : 0;
 		if (!$l_type) {
 			$link_params = array (
 								  'i',
@@ -1656,15 +1649,9 @@ class NP_CustomURL extends NucleusPlugin
 		}
 		$url = $this->_genarateObjectLink($link_params, $scatFlag);
 		if ($target) {
-			if ($title) {
-				$ObjLink = '<a href="' . hsc($url) . '" '
-						 . 'title="' . hsc($title) . '">'
-						 . hsc($target) . '</a>';
-			} else {
-				$ObjLink = '<a href="' . hsc($url) . '" '
-						 . 'title="' . hsc($target) . '">'
-						 . hsc($target) . '</a>';
-			}
+			$ph = array('url'=>hsc($url), 'target'=>hsc($target));
+			$ph['title'] = $title ? hsc($title) : hsc($target);
+			$ObjLink = parseHtml('<a href="{%url%}" title="{%title%}">{%target%}</a>', $ph);
 		} else {
 			$ObjLink = hsc($url);
 		}
@@ -2448,58 +2435,65 @@ OUTPUT;
 		if ($ping_urls_count <= 0) {
 			return;
 		}
-		$blog_id = getBlogidFromItemID(intval($data['itemid']));
-		for ($i=0; $i < count($ping_urls); $i++) {
-			if($localflag[$i]) {
-				$tmp_url         = parse_url($ping_urls[$i]);
-				$tmp_url['path'] = trim($tmp_url['path'], '/');
-				$path_arr        = explode("/", $tmp_url['path']);
-				$tail            = end($path_arr);
-				$linkObj         = array (
-										  'linkparam' => 'item',
-										  'bid'       => $blog_id,
-										 );
-				if (substr($tail, -10) == '.trackback') {
-					$pathName = substr($tail, 0, -10);
-					if (substr($pathName, -5) == '.html') {
-						$linkObj['name'] = $pathName;
-					} else {
-						$linkObj['name'] = $pathName . '.html';
-					}
+		$blog_id = getBlogidFromItemID((int)$data['itemid']);
+		$count_ping_urls = count($ping_urls);
+		for ($i=0; $i < $count_ping_urls; $i++) {
+			
+			if(!$localflag[$i]) continue;
+			
+			$tmp_url         = parse_url($ping_urls[$i]);
+			$tmp_url['path'] = trim($tmp_url['path'], '/');
+			$path_arr        = explode("/", $tmp_url['path']);
+			$tail            = end($path_arr);
+			$linkObj         = array (
+									  'linkparam' => 'item',
+									  'bid'       => $blog_id,
+									 );
+			if (substr($tail, -10) == '.trackback') {
+				$pathName = substr($tail, 0, -10);
+				if (substr($pathName, -5) == '.html') {
+					$linkObj['name'] = $pathName;
 				} else {
-					$linkObj['name'] = $tail;
+					$linkObj['name'] = $pathName . '.html';
 				}
-				$item_id = $this->getRequestPathInfo($linkObj);
-				if ($item_id) {
-					$ping_urls[$i] = $CONF['ActionURL']
-								   . '?action=plugin&name=TrackBack&tb_id=' . $item_id;
-				}
+			} else {
+				$linkObj['name'] = $tail;
 			}
+			$item_id = $this->getRequestPathInfo($linkObj);
+			
+			if (!$item_id) continue;
+			
+			$ping_urls[$i] = $CONF['ActionURL'] . '?action=plugin&name=TrackBack&tb_id=' . $item_id;
 		}
-		$_REQUEST['trackback_ping_url'] = implode ("\n", $ping_urls);
+		$_REQUEST['trackback_ping_url'] = join ("\n", $ping_urls);
 	}
 	
 	public function event_PrePluginOptionsEdit(&$data)
 	{
 		global $member;
-		if ($data['context'] == 'member' && !$member->isAdmin())
-		{
-			$allow = $this->getOption('customurl_allow_edit_member_uri') == 'yes';
-			$myid = $this->getID();
-			if (!$allow)
-				foreach($data['options'] as $k => $v)
-					if ($v['pid'] == $myid)
-						unset($data['options'][$k]);
+		
+		if ($data['context'] !== 'member') return;
+		if ($member->isAdmin())            return;
+		
+		if ($this->getOption('customurl_allow_edit_member_uri') == 'yes') return;
+		
+		foreach($data['options'] as $k => $v) {
+			if ($v['pid'] != $this->getID()) {
+				continue;
+			}
+			unset($data['options'][$k]);
 		}
 	}
 
 	public function event_PostUpdatePlugin(&$data)
 	{
-		if ( method_exists( 'NucleusPlugin' , 'existOptionDesc' ) )  // method_exists , PHP do not search parent functions
-		{
-			if ( !$this->existOptionDesc( 'customurl_allow_edit_member_uri' ) )
-				$this->createOption('customurl_allow_edit_member_uri', _OP_ALLOW_EDIT_MEMBER_URI, 'yesno', 'no');
+		if ( !method_exists( 'NucleusPlugin' , 'existOptionDesc' ) ) {
+			return;
 		}
+		if ( $this->existOptionDesc( 'customurl_allow_edit_member_uri' ) ) {
+			return;
+		}
+		$this->createOption('customurl_allow_edit_member_uri', _OP_ALLOW_EDIT_MEMBER_URI, 'yesno', 'no');
 	}
 
 }
