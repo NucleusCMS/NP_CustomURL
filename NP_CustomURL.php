@@ -351,7 +351,7 @@ class NP_CustomURL extends NucleusPlugin
 		// initialize and sanitize '$blogid'
 		if (!$blogid) {
 			if ( getVar('blogid') ) {
-				if ( is_numeric(getVar('blogid')) ) {
+				if ( preg_match('@^[1-9][0-9]*$@',getVar('blogid')) ) {
 					$blogid = (int)getVar('blogid');
 				} else {
 					$blogid = (int)getBlogIDFromName(getVar('blogid'));
@@ -539,7 +539,7 @@ class NP_CustomURL extends NucleusPlugin
 		$tail = end($v_path);
 		if (substr($tail, -10, 10) == '.trackback') {
 			$v_pathName = substr($tail, 0, -10);
-			if (is_numeric($v_pathName) || substr($v_pathName, -5) == '.html') {
+			if (preg_match('@^[1-9][0-9]*$@',$v_pathName) || substr($v_pathName, -5) == '.html') {
 				$this->_trackback($blogid, $v_pathName);
 			} else {
 				$this->_trackback($blogid, $v_pathName . '.html');
@@ -560,7 +560,7 @@ class NP_CustomURL extends NucleusPlugin
 				case $CONF['BlogKey']:
 					// decode FancyURLs and redirection to Customized URL
 					// for blogsgetAllBlogOptions($name)
-					if (isset($v_path[$i]) && is_numeric($v_path[$i])) {
+					if (isset($v_path[$i]) && preg_match('@^[1-9][0-9]*$@',$v_path[$i])) {
 						if ($useCustomURL[(int)$v_path[$i]] != 'yes') {
 							$blogid = (int)$v_path[$i];
 						} else {
@@ -571,7 +571,7 @@ class NP_CustomURL extends NucleusPlugin
 					break;
 				case $CONF['ItemKey']:
 					// for items
-					if (isset($v_path[$i]) && is_numeric($v_path[$i])) {
+					if (isset($v_path[$i]) && preg_match('@^[1-9][0-9]*$@',$v_path[$i])) {
 						if ($useCustomURL[$blogid] != 'yes') {
 							$itemid = (int)$v_path[$i];
 							$isItem  = true;
@@ -584,7 +584,7 @@ class NP_CustomURL extends NucleusPlugin
 				// for categories
 				case $CONF['CategoryKey']:
 				case 'catid':
-					if (isset($v_path[$i]) && is_numeric($v_path[$i])) {
+					if (isset($v_path[$i]) && preg_match('@^[1-9][0-9]*$@',$v_path[$i])) {
 						if ($useCustomURL[$blogid] != 'yes') {
 							$catid  = (int)$v_path[$i];
 							$isCategory  = true;
@@ -597,8 +597,8 @@ class NP_CustomURL extends NucleusPlugin
 				// for subcategories
 				case $subrequest:
 					$c = $i - 2;
-					$subCat = (isset($v_path[$i]) && is_numeric($v_path[$i]));
-					if ($NP_MultipleCategories && $subCat && $i >= 3 && is_numeric($v_path[$c])) {
+					$subCat = (isset($v_path[$i]) && preg_match('@^[1-9][0-9]*$@',$v_path[$i]));
+					if ($NP_MultipleCategories && $subCat && $i >= 3 && preg_match('@^[1-9][0-9]*$@',$v_path[$c])) {
 						if ($useCustomURL[$blogid] != 'yes') {
 							$subcatid  = (int)$v_path[$i];
 							$catid     = (int)$v_path[$c];
@@ -616,7 +616,7 @@ class NP_CustomURL extends NucleusPlugin
 				case $CONF['ArchivesKey']:
 				case $this->getOption('customurl_archives'):
 				// FancyURL
-					if (isset($v_path[$i]) && is_numeric($v_path[$i])) {
+					if (isset($v_path[$i]) && preg_match('@^[1-9][0-9]*$@',$v_path[$i])) {
 						if ($useCustomURL[(int)$v_path[$i]] != 'yes') {
 							$archivelist = (int)$v_path[$i];
 							$blogid      = $archivelist;
@@ -655,7 +655,7 @@ class NP_CustomURL extends NucleusPlugin
 						$aarc  = ($adarc || $amarc || $ayarc);
 						$carc  = ($darc || $marc || $yarc);
 						// FancyURL
-						if (is_numeric($v_path[$i]) && $arc && isset($v_path[$ar]) && $aarc) {
+						if (preg_match('@^[1-9][0-9]*$@',$v_path[$i]) && $arc && isset($v_path[$ar]) && $aarc) {
 								sscanf($v_path[$ar], '%d-%d-%d', $y, $m, $d);
 							if (!empty($d)) {
 								$archive = sprintf('%04d-%02d-%02d', $y, $m, $d);
@@ -707,7 +707,7 @@ class NP_CustomURL extends NucleusPlugin
 						$memberid   = (int)$member_id;
 						$isExtra    = true;
 				// FancyURL
-					} elseif (isset($v_path[$i]) && is_numeric($v_path[$i])) {
+					} elseif (isset($v_path[$i]) && preg_match('@^[1-9][0-9]*$@',$v_path[$i])) {
 						if ($useCustomURL[$blogid] != 'yes') {
 							$memberid = (int)$v_path[$i];
 							$isExtra  = true;
@@ -1028,7 +1028,7 @@ class NP_CustomURL extends NucleusPlugin
 		$ref_data =& $data;
 		unset($data);
 		$data = array_merge($ref_data); // copy data to avoid contamination of the variable
-		if (is_numeric($blogid)) {
+		if (preg_match('@^[1-9][0-9]*$@',$blogid)) {
 			$blogid = (int)$blogid;
 		} else {
 			$blogid = (int)getBlogIDFromName($blogid);
@@ -1056,7 +1056,7 @@ class NP_CustomURL extends NucleusPlugin
 		$burl           = null;
 		switch ($data['type']) {
 			case 'item':
-				if (!is_numeric($params['itemid'])) {
+				if (!preg_match('@^[1-9][0-9]*$@',$params['itemid'])) {
 					return;
 				}
 				$itemid = (int)$params['itemid'];
@@ -1104,7 +1104,7 @@ class NP_CustomURL extends NucleusPlugin
 				}
 				break;
 			case 'member':
-				if (!is_numeric($params['memberid']) || $useCustomURL[$blogid] =='no') {
+				if (!preg_match('@^[1-9][0-9]*$@',$params['memberid']) || $useCustomURL[$blogid] =='no') {
 					return;
 				}
 				$memberID = (int)$params['memberid'];
@@ -1138,7 +1138,7 @@ class NP_CustomURL extends NucleusPlugin
 				}
 				break;
 			case 'category':
-				if (!is_numeric($params['catid'])) {
+				if (!preg_match('@^[1-9][0-9]*$@',$params['catid'])) {
 					return;
 				}
 				$cat_id = (int)$params['catid'];
@@ -1181,7 +1181,7 @@ class NP_CustomURL extends NucleusPlugin
 				$burl = $this->_generateBlogLink($bid);
 			break;
 			case 'blog':
-				if (!is_numeric($params['blogid'])) {
+				if (!preg_match('@^[1-9][0-9]*$@',$params['blogid'])) {
 					return;
 				}
 				$bid  = (int)$params['blogid'];
