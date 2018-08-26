@@ -975,7 +975,7 @@ class NP_CustomURL extends NucleusPlugin
 		$ObjID = quickQuery(parseQuery($query,$ph));
 		
 		if (!$ObjID) {
-			return;
+			return false;
 		}
 		
 		return (int)$ObjID;
