@@ -12,14 +12,16 @@ if (!defined('_CUSTOMURL_TABLE_DEFINED')) {
 class NP_CustomURL extends NucleusPlugin
 {
 
-	function getMinNucleusVersion() { return '364';}
+	private $currentItem;
+	
+	function getMinNucleusVersion() { return '371';}
 	function getName()              { return 'Customized URL';}
 	function getAuthor()            { return 'shizuki + nekonosippo + Cacher + Reine';}
 	function getURL()               { return 'http://japan.nucleuscms.org/wiki/plugins:customurl';}
 	function getVersion()           { return '0.4.1';}
 	function getDescription()       { return _DESCRIPTION;}
 	function hasAdminArea()         { return 1;}
-	function getTableList()         { return array(_CUSTOMURL_TABLE);}
+	function getTableList()         { return array(parseQUery('[@prefix@]plug_customurl'));}
 	function supportsFeature($what)
 	{
 		switch ($what) {
@@ -189,14 +191,14 @@ class NP_CustomURL extends NucleusPlugin
 		$this->setOption('customurl_dfscat',   'subcategory');
 
 //create data table
-		$sql = 'CREATE TABLE IF NOT EXISTS ' . _CUSTOMURL_TABLE . ' ('
+		$sql = parseQuery('CREATE TABLE IF NOT EXISTS [@prefix@]plug_customurl ('
 			 . ' `id` INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY, '
 			 . ' `obj_param` VARCHAR(15) NOT NULL, '
 			 . ' `obj_name` VARCHAR(128) NOT NULL, '
 			 . ' `obj_id` INT(11) NOT NULL, '
 			 . ' `obj_bid` INT(11) NOT NULL,'
 			 . ' INDEX (`obj_name`)'
-			 . ' )';
+			 . ' )');
 		global $MYSQL_HANDLER;
 		if ((isset($this->is_db_sqlite) && $this->is_db_sqlite) || in_array('sqlite', $MYSQL_HANDLER))
 		{
@@ -204,8 +206,8 @@ class NP_CustomURL extends NucleusPlugin
 			$sql = preg_replace("#,\s+INDEX .+$#ims", ");", $sql);
 			$res = sql_query($sql);
 			if ($res === FALSE)
-				addToLog (ERROR, 'NP_CustomURL : failed to create the table ' . _CUSTOMURL_TABLE);
-			$sql = sprintf('CREATE INDEX IF NOT EXISTS `%s_idx_obj_name` on `%s` (`obj_name`);', _CUSTOMURL_TABLE, _CUSTOMURL_TABLE);
+				addToLog (ERROR, parseQuery('NP_CustomURL : failed to create the table [@prefix@]plug_customurl'));
+			$sql = parseQuery('CREATE INDEX IF NOT EXISTS `[@prefix@]plug_customurl_idx_obj_name` on `[@prefix@]plug_customurl` (`obj_name`);');
 		}
 		sql_query($sql);
 
@@ -289,10 +291,8 @@ class NP_CustomURL extends NucleusPlugin
 				sql_query(sprintf($insertQuery, _CUSTOMURL_TABLE, $type, $row[$id], $newPath, $blgid));
 			}
 		}
-		$query = 'SELECT obj_id, obj_name '
-			   . 'FROM %s '
-			   . "WHERE obj_param = '%s'";
-		$temp  = sql_query(sprintf($query, _CUSTOMURL_TABLE, $type));
+		$query = "SELECT obj_id, obj_name FROM [@prefix@]plug_customurl WHERE obj_param='[@type@]'";
+		$temp  = sql_query(parseQuery($query, array('type'=>$type)));
 		while ($row = sql_fetch_array($temp)) {
 			$name = $row['obj_name'];
 			$id   = intval($row['obj_id']);
@@ -318,6 +318,7 @@ class NP_CustomURL extends NucleusPlugin
 	function init()
 	{
 		global $admin;
+		
 		$language = str_replace(array('\\','/'), '', getLanguageName());
 		$plugin_path = $this->getDirectory();
 		if (!is_file("{$plugin_path}language/{$language}.php"))
@@ -338,7 +339,7 @@ class NP_CustomURL extends NucleusPlugin
 	function unInstall()
 	{
 		if ($this->getOption('customurl_tabledel') == 'yes') {
-			sql_query("DROP TABLE "._CUSTOMURL_TABLE);
+			sql_query(parseQuery('DROP TABLE [@prefix@]plug_customurl'));
 		}
 		$this->deleteOption('customurl_archive');
 		$this->deleteOption('customurl_archives');
@@ -431,10 +432,10 @@ class NP_CustomURL extends NucleusPlugin
 			$v_path[$key] = $value;
 		}
 		if (phpversion() >= '4.1.0') {
-			$_SERVER['PATH_INFO'] = implode('/', $v_path);
+			$_SERVER['PATH_INFO'] = join('/', $v_path);
 		}
 		global $HTTP_SERVER_VARS;
-		$HTTP_SERVER_VARS['PATH_INFO'] = implode('/', $v_path);
+		$HTTP_SERVER_VARS['PATH_INFO'] = join('/', $v_path);
 
 // Admin area check
 		$tmpURL       = sprintf("%s%s%s", "http://", serverVar("HTTP_HOST"), serverVar("SCRIPT_NAME"));
@@ -518,8 +519,12 @@ class NP_CustomURL extends NucleusPlugin
 				if (!empty($temp)) {
 					$p_arr = array();
 					foreach ($temp as $key => $value) {
-						$p_key = explode('=', $value);
-						switch (reset($p_key)) {
+						if(strpos($value,'=')!==false) {
+							list($k, $null) = explode('=', $value, 2);
+						} else {
+							$k = $value;
+						}
+						switch ($k) {
 							case 'blogid';
 								$p_arr[] = $CONF['BlogKey'] . '/'
 										 . intGetVar('blogid');
@@ -528,11 +533,6 @@ class NP_CustomURL extends NucleusPlugin
 							case 'catid';
 								$p_arr[] = $CONF['CategoryKey'] . '/'
 										 . intGetVar('catid');
-								unset($temp[$key]);
-								break;
-							case $subrequest;
-								$p_arr[] = $subrequest . '/'
-										 . intGetVar($subrequest);
 								unset($temp[$key]);
 								break;
 							case 'itemid';
@@ -556,15 +556,20 @@ class NP_CustomURL extends NucleusPlugin
 								unset($temp[$key]);
 								break;
 							default:
+								if ( isset($subrequest) && $subrequest == $k) {
+									$p_arr[] = $subrequest . '/'
+											 . intGetVar($subrequest);
+									unset($temp[$key]);
+								}
 								break;
 						}
 					}
 					if (!empty($temp)) {
-						$queryTemp = '/?' . implode('&', $temp);
+						$queryTemp = '/?' . join('&', $temp);
 					}
 					if (reset($p_arr)) {
 						$b_url    = createBlogidLink($blogid);
-						$red_path = '/' . implode('/', $p_arr);
+						$red_path = '/' . join('/', $p_arr);
 						if (substr($b_url, -1) == '/') {
 							$b_url = rtrim($b_url, '/');
 						}
@@ -915,7 +920,7 @@ class NP_CustomURL extends NucleusPlugin
 					}
 				}
 				if (!empty($temp)) {
-					$tempQueryString = '?' . implode('&', $temp);
+					$tempQueryString = '?' . join('&', $temp);
 				}
 			}
 			header('HTTP/1.1 301 Moved Permanently');
@@ -955,7 +960,7 @@ class NP_CustomURL extends NucleusPlugin
 // URL Not Found
 			if (substr(end($v_path), -5) == '.html' && !$iLink) {
 				$notFound = TRUE;
-				if (!empty($subcatid)) {
+				if (isset($subcatid) && !empty($subcatid)) {
 					$linkParam = array(
 									   $subrequest => $subcatid
 									  );
@@ -965,13 +970,13 @@ class NP_CustomURL extends NucleusPlugin
 				} else {
 					$uri = createBlogidLink($blogid);
 				}
-			} elseif (count($v_path) > $sc && !empty($subcatid) && !$iLink) {
+			} elseif (count($v_path) > $sc && isset($subcatid) && !empty($subcatid) && !$iLink) {
 				$notFound  = TRUE;
 				$linkParam = array(
 								   $subrequest => $subcatid
 								  );
 				$uri       = createCategoryLink($catid, $linkParam);
-			} elseif (count($v_path) >= 2 && !$subcatid && !$iLink) {
+			} elseif (count($v_path) >= 2 && (!isset($subcatid)||!$subcatid) && !$iLink) {
 				$notFound = TRUE;
 				if (isset($catid)) {
 					$uri = createCategoryLink($catid);
@@ -1374,7 +1379,7 @@ class NP_CustomURL extends NucleusPlugin
 				}
 			}
 		}
-		$subcatPath = @implode('/', $eachPath);
+		$subcatPath = join('/', $eachPath);
 		return $subcatPath . '/';
 	}
 
@@ -1430,6 +1435,14 @@ class NP_CustomURL extends NucleusPlugin
 	function _generateBlogLink($bid)
 	{
 		global $manager, $CONF;
+		
+		static $url = array();
+		
+		if(isset($url[$bid]))
+		{
+			return $url[$bid];
+		}
+		
 		$blog_id = intval($bid);
 		$param   = array(
 						 'blog',
@@ -1444,27 +1457,26 @@ class NP_CustomURL extends NucleusPlugin
 		if ($this->getBlogOption($blog_id, 'use_customurl') == 'yes') {
 			if ($blog_id == $CONF['DefaultBlog'] && $this->getOption('customurl_incbname') == 'no') {
 				if (empty($burl)) {
-					$this->_updateBlogURL($CONF['IndexURL'], $blog_id);
+					$this->_updateBlogURL($CONF['IndexURL'], $blog_id, __LINE__);
 				}
 				$burl = $CONF['IndexURL'];
 			} else {
 				if (empty($burl)) {
 					$burl = $CONF['IndexURL'];
 				}
-				if (substr($burl, -4) == '.php' || $burl == $CONF['IndexURL']) {
+				if (substr($burl, -4) == '.php') {
 					$path = $this->getBlogOption($blog_id, 'customurl_bname');
+					file_put_contents('/var/www/vhosts/bengoshi-blog.com/httpdocs/_log/debuglog.txt', __LINE__.$path."\n", FILE_APPEND);
 					if ($path) {
-						$burl = $CONF['IndexURL'] . $path;
+						$burl = rtrim($CONF['IndexURL'],'/').'/' . $path.'/';
 					} else {
-						$query = 'SELECT bshortname as result'
-							   . ' FROM %s'
-							   . ' WHERE bnumber = %d';
-						$query = sprintf($query, sql_table('blog'), $blog_id);
+						$query = 'SELECT bshortname as result FROM [@prefix@]blog WHERE bnumber = [@bnumber@]';
+						$query = parseQuery($query, array('bnumber'=>$blog_id));
 						$bpath = quickQuery($query);
 						$this->RegistPath($blog_id, $bpath, 0, 'blog', $bpath, TRUE);
-						$burl  = $CONF['IndexURL'] . $bpath . '/';
+						$burl  = rtrim($CONF['IndexURL'],'/').'/' . $bpath . '/';
 					}
-					$this->_updateBlogURL($burl, $blog_id);
+					$this->_updateBlogURL($burl, $blog_id, __LINE__);
 				}
 			}
 		}
@@ -1473,17 +1485,24 @@ class NP_CustomURL extends NucleusPlugin
 			if (strlen($burl)==0) {
 				$usePathInfo = ($CONF['URLMode'] == 'pathinfo');
 				if ($usePathInfo) {
-					$burl = $CONF['BlogURL'] . '/' . $CONF['BlogKey'] . '/' . $blog_id;
+					$burl = rtrim($CONF['BlogURL'],'/') . '/' . $CONF['BlogKey'] . '/' . $blog_id;
 				} else {
 					$burl = $CONF['BlogURL'] . '?blogid=' . $blog_id;
 				}
 			}
 		}
-		return trim($burl, '/');
+		$url[$bid] = trim($burl, '/');
+		return $url[$bid];
 	}
 
-	function _updateBlogURL($burl, $blogid)
+	function _updateBlogURL($burl, $blogid, $line)
 	{
+		static $excuted = array();
+		
+		file_put_contents('/var/www/vhosts/bengoshi-blog.com/httpdocs/_log/debuglog.txt', 'line:' . $line.' |'.$_SERVER['REQUEST_URI'] . '|'.$burl.'|'.$blogid.'|'."\n", FILE_APPEND);
+		
+		if(isset($excuted[$blogid])) return;
+		
 		$blogid      = intval($blogid);
 		$burl_update = 'UPDATE %s '
 					 . "SET    burl = '%s' "
@@ -1491,6 +1510,7 @@ class NP_CustomURL extends NucleusPlugin
 		$burl        = $this->quote_smart($burl);
 		$bTable      = sql_table('blog');
 		sql_query(sprintf($burl_update, $bTable, $burl, $blogid));
+		$excuted[$blogid] = $burl;
 	}
 
 	function _addLinkParams($link, $params)
@@ -1554,9 +1574,9 @@ class NP_CustomURL extends NucleusPlugin
 				}
 			}
 			if (substr($link, -5, 5) == '.html' || $isArchives) {
-				$link = implode('', $paramlink) . $link;
+				$link = join('', $paramlink) . $link;
 			} else {
-				$link .= implode('', $paramlink);
+				$link .= join('', $paramlink);
 			}
 		}
 		if ($linkExtra) {
@@ -1704,8 +1724,9 @@ class NP_CustomURL extends NucleusPlugin
 		$l_type  = $l_data[0];
 		$target  = $l_data[1];
 		$title   = $l_data[2];
-		$item_id = intval($this->currentItem->itemid);
 		if (!$l_type) {
+			if(!isset($this->currentItem->itemid)) return;
+			$item_id = intval($this->currentItem->itemid);
 			$link_params = array (
 								  'i',
 								  $item_id,
@@ -2594,7 +2615,7 @@ OUTPUT;
 				}
 			}
 		}
-		$_REQUEST['trackback_ping_url'] = implode ("\n", $ping_urls);
+		$_REQUEST['trackback_ping_url'] = join ("\n", $ping_urls);
 	}
 	
 	function hsc($string, $flags=ENT_QUOTES, $encoding='')
