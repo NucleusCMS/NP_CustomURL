@@ -35,25 +35,6 @@ class NP_CustomURL extends NucleusPlugin
 		}
 	}
 
-
-	public function event_QuickMenu(&$data)
-	{
-		global $member;
-		$quickLink   = ($this->getOption( 'customurl_quicklink') == 'yes');
-		$memberCheck = ($member->isLoggedIn() && $member->isAdmin());
-		if (!$quickLink || !$memberCheck) {
-			return;
-		}
-		array_push(
-			$data['options'],
-			array(
-				'title'   => _ADMIN_TITLE,
-				'url'     => $this->getAdminURL(),
-				'tooltip' => _QUICK_TIPS
-			)
-		);
-	}
-
 	public function getEventList()
 	{
 		return	array(
@@ -83,11 +64,6 @@ class NP_CustomURL extends NucleusPlugin
 					 );
 	}
 
-	public function install()
-	{
-		include_once($this->getDirectory().'inc/install.inc.php');
-	}
-
 	public function init()
 	{
 		if(strpos(serverVar('REQUEST_URI'),'/nucleus/')===false) {
@@ -100,38 +76,111 @@ class NP_CustomURL extends NucleusPlugin
 		include_once("{$plugin_path}language/{$language}.php");
 	}
 
-	function pluginCheck($pluginName)
+	public function doSkinVar($skinType, $link_type = '', $target = '', $title = '')
 	{
-		global $manager;
-		if (!$manager->pluginInstalled('NP_' . $pluginName)) {
+		global $blogid;
+		if ($skinType == 'item' && $link_type == 'trackback') {
+			global $itemid, $CONF;
+			if ($this->getBlogOption($blogid, 'use_customurl') == 'yes') {
+				$que      = 'SELECT obj_name as result '
+						  . 'FROM %s '
+						  . 'WHERE obj_param = "item" '
+						  . 'AND      obj_id = %d';
+				$itempath = quickQuery(sprintf($que, _CUSTOMURL_TABLE, $itemid));
+				if ($target != 'ext') {
+					$uri = $CONF['BlogURL'] . '/trackback/' . $itempath;
+				} elseif ($target == 'ext') {
+// /item_123.trackback
+					$itempath = substr($itempath, 0, -5) . '.trackback';
+					$uri      = $CONF['BlogURL'] . '/' . $itempath;
+				}
+			} else {
+				$uri = $CONF['ActionURL']
+					 . '?action=plugin&amp;name=TrackBack&amp;tb_id=' . $itemid;
+			}
+			echo $uri;
 			return;
 		}
-		$plugin =& $manager->getPlugin('NP_' . $pluginName);
-		return $plugin;
+		if (!$link_type) {
+			$link_params = array(0, 'b/' . intval($blogid) . '/i,'
+						 . $target . ',' . $title);
+		} else {
+			$l_params = explode("/", $link_type);
+			if (count($l_params) == 1) {
+				$link_params = array(0, 'b/' . intval($link_type) . '/i,'
+							 . $target . ',' . $title);
+			} else {
+				$link_params = array(0,
+									 $link_type . ',' . $target . ',' . $title);
+			}
+		}
+		echo $this->URL_Callback($link_params);
 	}
 
-	public function unInstall()
+	public function doItemVar(&$item, $link_type = '', $target = '', $title = '')
 	{
-		if ($this->getOption('customurl_tabledel') == 'yes') {
-			sql_query(parseQuery('DROP TABLE [@prefix@]plug_customurl'));
+		if (getNucleusVersion() < '330') {
+			return;
 		}
-		$this->deleteOption('customurl_archive');
-		$this->deleteOption('customurl_archives');
-		$this->deleteOption('customurl_member');
-		$this->deleteOption('customurl_dfitem');
-		$this->deleteOption('customurl_dfcat');
-		$this->deleteOption('customurl_dfscat');
-		$this->deleteOption('customurl_notfound');
-		$this->deleteOption('customurl_tabledel');
-		$this->deleteOption('customurl_quicklink');
-		$this->deleteOption('customurl_allow_edit_member_uri');
-		$this->deleteBlogOption('use_customurl');
-		$this->deleteBlogOption('redirect_normal');
-		$this->deleteBlogOption('redirect_search');
-		$this->deleteBlogOption('customurl_bname');
-//		$this->deleteItemOption('customurl_iname');
-		$this->deleteMemberOption('customurl_mname');
-		$this->deleteCategoryOption('customurl_cname');
+		$item_id = intval($item->itemid);
+		if (!$link_type || $link_type == 'subcategory') {
+			$link_params = array(0,
+								 'i/' . $item_id . '/i,' . $target . ',' . $title);
+		} elseif ($link_type == 'path') {
+			$link_params = array(0,
+								 'i/' . $item_id . '/path,' . $target . ',' . $title);
+		} else {
+			$link_params = array(0,
+								 $link_type . ',' . $target . ',' . $title);
+		}
+		if ($link_type == 'subcategory') {
+			echo $this->URL_Callback($link_params, 'scat');
+		} else {
+			echo $this->URL_Callback($link_params);
+		}
+	}
+
+	public function doTemplateVar(&$item, $link_type = '', $target = '', $title = '')
+	{
+		$item_id = intval($item->itemid);
+		if ($link_type == 'trackback') {
+			global $CONF;
+			$blog_id = intval(getBlogIDFromItemID($item_id));
+			if ($this->getBlogOption($blog_id, 'use_customurl') == 'yes') {
+				$que      = 'SELECT obj_name as result '
+						  . 'FROM %s '
+						  . 'WHERE obj_param = "item" '
+						  . 'AND      obj_id = %d';
+				$itempath = quickQuery(sprintf($que, _CUSTOMURL_TABLE, $item_id));
+				if ($target != 'ext') {
+					$uri = $CONF['BlogURL'] . '/trackback/' . $itempath;
+				} elseif ($target == 'ext') {
+// /item_123.trackback
+					$itempath = substr($itempath, 0, -5) . '.trackback';
+					$uri = $CONF['BlogURL'] . '/' . $itempath;
+				}
+			} else {
+				$uri = $CONF['ActionURL']
+					 . '?action=plugin&amp;name=TrackBack&amp;tb_id=' . $item_id;
+			}
+			echo $uri;
+			return;
+		}
+		if (!$link_type || $link_type == 'subcategory') {
+			$link_params = array(0,
+								 'i/' . $item_id . '/i,' . $target . ',' . $title);
+		} elseif ($link_type == 'path') {
+			$link_params = array(0,
+								 'i/' . $item_id . '/path,' . $target . ',' . $title);
+		} else {
+			$link_params = array(0,
+								 $link_type . ',' . $target . ',' . $title);
+		}
+		if ($link_type == 'subcategory') {
+			echo $this->URL_Callback($link_params, 'scat');
+		} else {
+			echo $this->URL_Callback($link_params);
+		}
 	}
 
 	public function event_ParseURL($data)
@@ -799,75 +848,6 @@ class NP_CustomURL extends NucleusPlugin
 		}
 	}
 
-	function goNP_ExtraSkinJP()
-	{
-        global $CONF;
-		$ExtraSkinJP = $this->pluginCheck('ExtraSkinJP');
-		// under v3.2 needs this
-		if ($CONF['DisableSite'] && !$member->isAdmin()) {
-			header('Location: ' . $CONF['DisableSiteURL']);
-			exit;
-		}
-		$extraParams = explode("/", serverVar('PATH_INFO'));
-		array_shift ($extraParams);
-
-		if (isset($extraParams[1]) && preg_match("/^([1-9]+[0-9]*)(\?.*)?$/", $extraParams[1], $matches)) {
-			$extraParams[1] = $matches[1];
-		}
-
-		$ExtraSkinJP->extra_selector($extraParams);
-		exit;
-	}
-
-// decode 'path name' to 'id'
-	function getRequestPathInfo($linkObj)
-	{
-		$query = "SELECT obj_id as result FROM [@prefix@]plug_customurl WHERE obj_name='[@name@]' AND obj_bid='[@bid@]' AND obj_param='[@linkparam@]'";
-		
-		$data = array();
-		$data['name']      = sql_real_escape_string($linkObj['name']);
-		$data['bid']       = sql_real_escape_string($linkObj['bid']);
-		$data['linkparam'] = sql_real_escape_string($linkObj['linkparam']);
-		
-		if (!$ObjID = quickQuery(parseQuery($query, $data))) {
-			return;
-		}
-		
-		return intval($ObjID);
-	}
-
-// Receive TrackBack ping
-	function _trackback($bid, $path)
-	{
-		$blog_id   = intval($bid);
-		$TrackBack = $this->pluginCheck('TrackBack');
-		if ($TrackBack) {
-			if (substr($path, -5, 5) == '.html') {
-				$linkObj = array (
-								  'linkparam' => 'item',
-								  'bid'       => $blog_id,
-								  'name'      => $path
-								 );
-				$item_id = $this->getRequestPathInfo($linkObj);
-				if ($item_id) {
-					$tb_id = intval($item_id);
-				} else {
-					doError(_NO_SUCH_URI);
-				}
-			} else {
-				$tb_id = intval($path);
-			}
-
-			$errorMsg = $TrackBack->handlePing($tb_id);
-			if ($errorMsg != '') {
-				$TrackBack->xmlResponse($errorMsg);
-			} else {
-				$TrackBack->xmlResponse();
-			}
-		}
-		exit;
-	}
-
 	public function event_GenerateURL($data)
 	{
 		global $CONF, $manager, $blogid;
@@ -1112,610 +1092,6 @@ class NP_CustomURL extends NucleusPlugin
 			$ref_data = array_merge($data);
 	}
 
-	function _createSubCategoryLink($scid)
-	{
-		$scids     = $this->getParents(intval($scid));
-		$subcatids = explode('/', $scids);
-		$eachPath  = array();
-		foreach ($subcatids as $sid) {
-			$subcat_id = intval($sid);
-			$query     = 'SELECT obj_name as result'
-					   . ' FROM         %s'
-					   . ' WHERE    obj_id = %d'
-					   . " AND   obj_param = '%s'";
-			$query     = sprintf($query, _CUSTOMURL_TABLE, $subcat_id, 'subcategory');
-			$path      = quickQuery($query);
-			if ($path) {
-				$eachPath[] = $path;
-			} else {
-				$tempParam = array(
-								   'plug_multiple_categories_sub',
-								   'scatid',
-								   $subcat_id
-								  );
-				if (!$this->_isValid($tempParam)) {
-					return $url = _NOT_VALID_SUBCAT;
-				} else {
-					$scpath = $this->getOption('customurl_dfscat') . '_' . $subcat_id;
-					$query  = 'SELECT catid as result FROM %s WHERE scatid = %d';
-					$query  = sprintf($query, _C_SUBCAT_TABLE, $subcat_id);
-					$cid    = quickQuery($query);
-					if (!$cid) {
-						return 'no_such_subcat=' . $subcat_id . '/';
-					}
-					$this->RegistPath($subcat_id, $scpath, $cid, 'subcategory', 'subcat_' . $subcat_id, TRUE);
-					$eachPath[] = $scpath;
-				}
-			}
-		}
-		$subcatPath = join('/', $eachPath);
-		return $subcatPath . '/';
-	}
-
-	function getParents($subid)
-	{
-		$mcatPlugin  = $this->pluginCheck('MultipleCategories');
-		$mcatVarsion = $mcatPlugin->getVersion() * 100;
-		if (intval($mcatVarsion) < 40) {
-			return intval($subid);
-		}
-		$subcat_id          = intval($subid);
-		$query              = 'SELECT '
-							. 'scatid, '
-							. 'parentid '
-							. 'FROM %s '
-							. 'WHERE scatid = %d';
-		$query              = sprintf($query, _C_SUBCAT_TABLE, $subcat_id);
-		$res                = sql_query($query);
-		list($sid, $parent) = sql_fetch_row($res);
-		if ($parent != 0) {
-			$r = $this->getParents($parent) . '/' . $sid;
-		} else {
-			$r = $sid;
-		}
-		return $r;
-	}
-
-	function _generateCategoryLink($cid)
-	{
-		global $CONF;
-		$cat_id = intval($cid);
-		$path   = $this->getCategoryOption($cat_id, 'customurl_cname');
-		if ($path) {
-			return $path . '/';
-		} else {
-			$catData = array(
-							 'category',
-							 'catid',
-							 $cat_id
-							);
-			if (!$this->_isValid($catData)) {
-				return $url = _NOT_VALID_CAT;
-			} else {
-				$cpath   = $this->getOption('customurl_dfcat') . '_' . $cat_id;
-				$blog_id = intval(getBlogIDFromCatID($cat_id));
-				$catname = 'catid_' . $cat_id;
-				$this->RegistPath($cat_id, $cpath, $blog_id, 'category', $catname, TRUE);
-				return $cpath . '/';
-			}
-		}
-	}
-
-	function _generateBlogLink($bid)
-	{
-		global $manager, $CONF;
-		
-		static $url = array();
-		
-		if(isset($url[$bid]))
-		{
-			return $url[$bid];
-		}
-		
-		$blog_id = intval($bid);
-		$param   = array(
-						 'blog',
-						 'bnumber',
-						 $blog_id
-						);
-		if (!$this->_isValid($param)) {
-			return _NOT_VALID_BLOG;
-		}
-		$b    =& $manager->getBlog($blog_id);
-		$burl = $b->getURL();
-		if ($this->getBlogOption($blog_id, 'use_customurl') == 'yes') {
-			if ($blog_id == $CONF['DefaultBlog'] && $this->getOption('customurl_incbname') == 'no') {
-				if (empty($burl)) {
-					$this->_updateBlogURL($CONF['IndexURL'], $blog_id, __LINE__);
-				}
-				$burl = $CONF['IndexURL'];
-			} else {
-				if (empty($burl)) {
-					$burl = $CONF['IndexURL'];
-				}
-				if (substr($burl, -4) == '.php') {
-					$path = $this->getBlogOption($blog_id, 'customurl_bname');
-					file_put_contents('/var/www/vhosts/bengoshi-blog.com/httpdocs/_log/debuglog.txt', __LINE__.$path."\n", FILE_APPEND);
-					if ($path) {
-						$burl = rtrim($CONF['IndexURL'],'/').'/' . $path.'/';
-					} else {
-						$query = 'SELECT bshortname as result FROM [@prefix@]blog WHERE bnumber = [@bnumber@]';
-						$query = parseQuery($query, array('bnumber'=>$blog_id));
-						$bpath = quickQuery($query);
-						$this->RegistPath($blog_id, $bpath, 0, 'blog', $bpath, TRUE);
-						$burl  = rtrim($CONF['IndexURL'],'/').'/' . $bpath . '/';
-					}
-					$this->_updateBlogURL($burl, $blog_id, __LINE__);
-				}
-			}
-		}
-		else
-		{
-			if (strlen($burl)==0) {
-				$usePathInfo = ($CONF['URLMode'] == 'pathinfo');
-				if ($usePathInfo) {
-					$burl = rtrim($CONF['BlogURL'],'/') . '/' . $CONF['BlogKey'] . '/' . $blog_id;
-				} else {
-					$burl = $CONF['BlogURL'] . '?blogid=' . $blog_id;
-				}
-			}
-		}
-		$url[$bid] = trim($burl, '/');
-		return $url[$bid];
-	}
-
-	function _updateBlogURL($burl, $blogid, $line)
-	{
-		static $excuted = array();
-		
-		file_put_contents('/var/www/vhosts/bengoshi-blog.com/httpdocs/_log/debuglog.txt', 'line:' . $line.' |'.$_SERVER['REQUEST_URI'] . '|'.$burl.'|'.$blogid.'|'."\n", FILE_APPEND);
-		
-		if(isset($excuted[$blogid])) return;
-		
-		$blogid      = intval($blogid);
-		$burl_update = 'UPDATE %s '
-					 . "SET    burl = '%s' "
-					 . 'WHERE  bnumber = %d';
-		$burl        = $this->quote_smart($burl);
-		$bTable      = sql_table('blog');
-		sql_query(sprintf($burl_update, $bTable, $burl, $blogid));
-		$excuted[$blogid] = $burl;
-	}
-
-	function _addLinkParams($link, $params)
-	{
-		global $CONF, $manager, $catid;
-		$arcTmp      = (preg_match('/' . $this->getOption('customurl_archives') . '/', $link));
-		$arcsTmp     = (preg_match('/' . $this->getOption('customurl_archive') . '/', $link));
-		$isArchives  = ($arcTmp || $arcsTmp);
-		$mcategories = $this->pluginCheck('MultipleCategories');
-		if ($mcategories) {
-			$param = array();
-			$mcategories->event_PreSkinParse($param);
-			global $subcatid;
-			if (method_exists($mcategories, 'getRequestName')) {
-				$subrequest = $mcategories->getRequestName();
-			} else {
-				$subrequest = 'subcatid';
-			}
-		}
-		$linkExtra = '';
-		if (is_array($params)) {
-			if (array_key_exists('archives', $params)) {
-				$linkExtra = $this->getOption('customurl_archives') . '/';
-				unset($params['archives']);
-			} elseif (array_key_exists('archivelist', $params)) {
-				$linkExtra = $this->getOption('customurl_archives') . '/';
-				unset($params['archivelist']);
-			} elseif (array_key_exists('archive', $params)) {
-				$y = $m = $d = '';
-				sscanf($params['archive'], '%d-%d-%d', $y, $m, $d);
-				if ($d) {
-					$arc = sprintf('%04d-%02d-%02d', $y, $m, $d);
-				} elseif ($m) {
-					$arc = sprintf('%04d-%02d',      $y, $m);
-				} else {
-					$arc = sprintf('%04d',           $y);
-				}
-				$linkExtra = $this->getOption('customurl_archive') . '/' . $arc;
-				unset($params['archive']);
-			}
-			if (array_key_exists('blogid', $params)) {
-				unset($params['blogid']);
-			}
-			$paramlink = array();
-			foreach ($params as $param => $value) {
-				switch ($param) {
-					case 'catid':
-					case $CONF['CategoryKey']:
-						$cid         = intval($value);
-						$paramlink[] = $this->_generateCategoryLink($cid);
-					break;
-					case $subrequest:
-						if ($mcategories) {
-							$sid         = intval($value);
-							$paramlink[] = $this->_createSubCategoryLink($sid);
-						}
-					break;
-					default:
-						$paramlink[] = $param . '/' . $value . '/';
-					break;
-				}
-			}
-			if (substr($link, -5, 5) == '.html' || $isArchives) {
-				$link = join('', $paramlink) . $link;
-			} else {
-				$link .= join('', $paramlink);
-			}
-		}
-		if ($linkExtra) {
-			$link .= $linkExtra;
-		}
-		if (requestVar('skinid')) {
-			$skinid = hsc(requestVar('skinid'));
-			if (!$link) {
-				$link = '?skinid=' . $skinid;
-			} elseif (strpos('?', $link)) {
-				$link .= '&amp;skinid=' . $skinid;
-			} else {
-				if (substr($link, -1) != '/' && !empty($link)) {
-					$link .= '/?skinid=' . $skinid;
-				} else {
-					$link .= '?skinid=' . $skinid;
-				}
-			}
-		}
-		if (strstr ($link, '//')) {
-			$link = preg_replace("/([^:])\/\//", "$1/", $link);
-		}
-		return $link;
-	}
-
-	public function doSkinVar($skinType, $link_type = '', $target = '', $title = '')
-	{
-		global $blogid;
-		if ($skinType == 'item' && $link_type == 'trackback') {
-			global $itemid, $CONF;
-			if ($this->getBlogOption($blogid, 'use_customurl') == 'yes') {
-				$que      = 'SELECT obj_name as result '
-						  . 'FROM %s '
-						  . 'WHERE obj_param = "item" '
-						  . 'AND      obj_id = %d';
-				$itempath = quickQuery(sprintf($que, _CUSTOMURL_TABLE, $itemid));
-				if ($target != 'ext') {
-					$uri = $CONF['BlogURL'] . '/trackback/' . $itempath;
-				} elseif ($target == 'ext') {
-// /item_123.trackback
-					$itempath = substr($itempath, 0, -5) . '.trackback';
-					$uri      = $CONF['BlogURL'] . '/' . $itempath;
-				}
-			} else {
-				$uri = $CONF['ActionURL']
-					 . '?action=plugin&amp;name=TrackBack&amp;tb_id=' . $itemid;
-			}
-			echo $uri;
-			return;
-		}
-		// $data == type / id || name / 'i'd || 'n'ame
-		// ex. =>	[(b)log / blogid [|| shortname / 'i'd || 'n'ame]]
-		//			(c)at  / catid [|| cname / 'i'd || 'n'ame]
-		//			(s)cat / subcatid [|| sname / 'i'd || 'n'ame]
-		//			[(i)tem /] itemid [/ 'path']
-		//			(m)ember / mnumber [|| mname / 'i'd || 'n'ame]
-		//
-		// if second param is null, third param is id
-		// if param is null, generate blog link
-		if (!$link_type) {
-			$link_params = array(0, 'b/' . intval($blogid) . '/i,'
-						 . $target . ',' . $title);
-		} else {
-			$l_params = explode("/", $link_type);
-			if (count($l_params) == 1) {
-				$link_params = array(0, 'b/' . intval($link_type) . '/i,'
-							 . $target . ',' . $title);
-			} else {
-				$link_params = array(0,
-									 $link_type . ',' . $target . ',' . $title);
-			}
-		}
-		echo $this->URL_Callback($link_params);
-	}
-
-	public function doItemVar(&$item, $link_type = '', $target = '', $title = '')
-	{
-		if (getNucleusVersion() < '330') {
-			return;
-		}
-		$item_id = intval($item->itemid);
-		if (!$link_type || $link_type == 'subcategory') {
-			$link_params = array(0,
-								 'i/' . $item_id . '/i,' . $target . ',' . $title);
-		} elseif ($link_type == 'path') {
-			$link_params = array(0,
-								 'i/' . $item_id . '/path,' . $target . ',' . $title);
-		} else {
-			$link_params = array(0,
-								 $link_type . ',' . $target . ',' . $title);
-		}
-		if ($link_type == 'subcategory') {
-			echo $this->URL_Callback($link_params, 'scat');
-		} else {
-			echo $this->URL_Callback($link_params);
-		}
-	}
-
-	public function doTemplateVar(&$item, $link_type = '', $target = '', $title = '')
-	{
-		$item_id = intval($item->itemid);
-		if ($link_type == 'trackback') {
-			global $CONF;
-			$blog_id = intval(getBlogIDFromItemID($item_id));
-			if ($this->getBlogOption($blog_id, 'use_customurl') == 'yes') {
-				$que      = 'SELECT obj_name as result '
-						  . 'FROM %s '
-						  . 'WHERE obj_param = "item" '
-						  . 'AND      obj_id = %d';
-				$itempath = quickQuery(sprintf($que, _CUSTOMURL_TABLE, $item_id));
-				if ($target != 'ext') {
-					$uri = $CONF['BlogURL'] . '/trackback/' . $itempath;
-				} elseif ($target == 'ext') {
-// /item_123.trackback
-					$itempath = substr($itempath, 0, -5) . '.trackback';
-					$uri = $CONF['BlogURL'] . '/' . $itempath;
-				}
-			} else {
-				$uri = $CONF['ActionURL']
-					 . '?action=plugin&amp;name=TrackBack&amp;tb_id=' . $item_id;
-			}
-			echo $uri;
-			return;
-		}
-		if (!$link_type || $link_type == 'subcategory') {
-			$link_params = array(0,
-								 'i/' . $item_id . '/i,' . $target . ',' . $title);
-		} elseif ($link_type == 'path') {
-			$link_params = array(0,
-								 'i/' . $item_id . '/path,' . $target . ',' . $title);
-		} else {
-			$link_params = array(0,
-								 $link_type . ',' . $target . ',' . $title);
-		}
-		if ($link_type == 'subcategory') {
-			echo $this->URL_Callback($link_params, 'scat');
-		} else {
-			echo $this->URL_Callback($link_params);
-		}
-	}
-
-	function URL_Callback($data, $scatFlag = '')
-	{
-		$l_data  = explode(",", $data[1]);
-		$l_type  = $l_data[0];
-		$target  = $l_data[1];
-		$title   = $l_data[2];
-		if (!$l_type) {
-			if(!isset($this->currentItem->itemid)) return;
-			$item_id = intval($this->currentItem->itemid);
-			$link_params = array (
-								  'i',
-								  $item_id,
-								  'i'
-								 );
-		} else {
-			$link_data = explode("/", $l_type);
-			if (count($link_data) == 1) {
-				$link_params = array (
-									  'i',
-									  intval($l_type),
-									  'i'
-									 );
-			} elseif (count($link_data) == 2) {
-				if ($link_data[1] == 'path') {
-					$link_params = array (
-										  'i',
-										  $link_data[0],
-										  'path'
-										 );
-				} else {
-					$link_params = array (
-										  $link_data[0],
-										  intval($link_data[1]),
-										  'i'
-										 );
-				}
-			} else {
-				$link_params = array (
-									  $link_data[0],
-									  $link_data[1],
-									  $link_data[2]
-									 );
-			}
-		}
-		$url = $this->_genarateObjectLink($link_params, $scatFlag);
-		if ($target) {
-			if ($title) {
-				$ObjLink = '<a href="' . hsc($url) . '" '
-						 . 'title="' . hsc($title) . '">'
-						 . hsc($target) . '</a>';
-			} else {
-				$ObjLink = '<a href="' . hsc($url) . '" '
-						 . 'title="' . hsc($target) . '">'
-						 . hsc($target) . '</a>';
-			}
-		} else {
-			$ObjLink = hsc($url);
-		}
-		return $ObjLink;
-	}
-
-	function _isValid($data)
-	{
-		$query   = 'SELECT count(*) AS result FROM %s WHERE %s = %d';
-		$data[2] = $this->quote_smart($data[2]);
-		$query   = sprintf($query, sql_table($data[0]), $data[1], $data[2]);
-		$ct      = intval(quickQuery($query));
-		return ($ct != 0);
-	}
-
-	function _genarateObjectLink($data, $scatFlag = '')
-	{
-		global $CONF, $manager, $blog;
-		$ext = substr(serverVar('REQUEST_URI'), -4);
-		if ($ext == '.rdf' || $ext == '.xml') {
-			$CONF['URLMode']  = 'pathinfo';
-		}
-		if ($CONF['URLMode'] != 'pathinfo') {
-			return;
-		}
-		$query = "SELECT %s as result FROM %s WHERE %s = '%s'";
-		switch ($data[0]) {
-			case 'b':
-				if ($data[2] == 'n') {
-					$bid = getBlogIDFromName($data[1]);
-				} else {
-					$bid = $data[1];
-				}
-				$blog_id = intval($bid);
-				$param   = array(
-								 'blog',
-								 'bnumber',
-								 $blog_id
-								);
-				if (!$this->_isValid($param)) {
-					$url = _NOT_VALID_BLOG;
-				} else {
-					$url = $this->_generateBlogLink($blog_id) . '/';
-				}
-			break;
-			case 'c':
-				if ($data[2] == 'n') {
-					$cid = getCatIDFromName($data[1]);
-				} else {
-					$cid = $data[1];
-				}
-				$cat_id = intval($cid);
-				$param = array(
-							   'category',
-							   'catid',
-							   $cat_id
-							  );
-				if (!$this->_isValid($param)) {
-					$url = _NOT_VALID_CAT;
-				} else {
-					$url = createCategoryLink($cat_id);
-				}
-			break;
-			case 's':
-				$mcategories = $this->pluginCheck('MultipleCategories');
-				if ($mcategories) {
-					if ($data[2] == 'n') {
-						$temp = $this->quote_smart($data[1]);
-						$sque = sprintf($query, 'scatid', _C_SUBCAT_TABLE, 'sname', $temp);
-						$scid = quickQuery($sque);
-					} else {
-						$scid = $data[1];
-					}
-					$sub_id = intval($scid);
-					$param  = array(
-									'plug_multiple_categories_sub',
-									'scatid',
-									$sub_id
-								   );
-					if (!$this->_isValid($param)) {
-						$url = _NOT_VALID_SUBCAT;
-					} else {
-						$cqe        = sprintf($query, 'catid', _C_SUBCAT_TABLE, 'scatid', $sub_id);
-						$cid        = quickQuery($cqe);
-						$cid        = intval($cid);
-						if (method_exists($mcategories, "getRequestName")) {
-							$subrequest = $mcategories->getRequestName();
-						}
-						if (!$subrequest) {
-							$subrequest = 'subcatid';
-						}
-						$linkParam = array(
-										   $subrequest => $sub_id
-										  );
-						$url       = createCategoryLink($cid, $linkParam);
-					}
-				}
-			break;
-			case 'i':
-				$param = array(
-							   'item',
-							   'inumber',
-							   intval($data[1])
-							  );
-				if (!$this->_isValid($param)) {
-					$url = _NOT_VALID_ITEM;
-				} else {
-					if ($scatFlag) {
-						global $catid, $subcatid;
-						if (!empty($catid)) {
-							$linkparams['catid'] = intval($catid);
-						}
-						if (!empty($subcatid)) {
-							$mcategories = $this->pluginCheck('MultipleCategories');
-							if ($mcategories) {
-								if (method_exists($mcategories, 'getRequestName')) {
-									$subrequest = $mcategories->getRequestName();
-								} else {
-									$subrequest = 'subcatid';
-								}
-							}
-							$linkparams[$subrequest] = intval($subcatid);
-						}
-						$url = createItemLink(intval($data[1]), $linkparams);
-					} else {
-						$blink = $this->_generateBlogLink(getBlogIDFromItemID(intval($data[1])));
-						$i_query = 'SELECT obj_name as result '
-								 . 'FROM %s '
-								 . 'WHERE obj_param = "item" '
-								 . 'AND      obj_id = %d';
-						$i_query = sprintf($i_query, _CUSTOMURL_TABLE, intval($data[1]));
-						$path    = quickQuery($i_query);
-						if ($path) {
-							if ($data[2] == 'path') {
-								$url = $path;
-							} else {
-								$url = $blink . '/' . $path;
-							}
-						} else {
-							if ($data[2] == 'path') {
-								$url = $CONF['ItemKey'] . '/'
-									 . intval($data[1]);
-							} else {
-								$url = $blink . '/' . $CONF['ItemKey'] . '/'
-									 . intval($data[1]);
-							}
-						}
-					}
-				}
-			break;
-			case 'm':
-				if ($data[2] == 'n') {
-					$data[1] = $this->quote_smart($data[1]);
-					$mque    = sprintf($query, 'mnumber', sql_table('member'), 'mname', $data[1]);
-					$mid     = quickQuery($mque);
-				} else {
-					$mid = $data[1];
-				}
-				$member_id = intval($mid);
-				$param = array(
-							   'member',
-							   'mnumber',
-							   $member_id
-							  );
-				if (!$this->_isValid($param)) {
-					$url = _NOT_VALID_MEMBER;
-				} else {
-					$url = createMemberLink($member_id);
-				}
-			break;
-		}
-		return $url;
-	}
-
 	public function event_InitSkinParse($data)
 	{
 		global $blogid, $CONF, $manager, $nucleus;
@@ -1821,64 +1197,6 @@ class NP_CustomURL extends NucleusPlugin
 			}
 		exit;
 		}
-	}
-
-	function getSkinContent($pageType, $skinID)
-	{
-		$skinID   = intval($skinID);
-		$pageType = addslashes($pageType);
-		$query    = 'SELECT scontent '
-				  . 'FROM %s '
-				  . 'WHERE sdesc = %d '
-				  . 'AND   stype = %d';
-		$query    = sprintf($query, sql_table('skin'), $skinID, $pageType);
-		$res      = sql_query($query);
-
-		if ($res && ($obj = sql_fetch_object($res)))
-			return $obj->scontent;
-		return '';
-	}
-
-// merge NP_RightURL
-	public function event_PreSkinParse($data)
-	{
-		global $CONF, $manager, $blog, $catid, $itemid, $subcatid;
-		global $memberid;
-		if (!$blog) {
-			$b =& $manager->getBlog($CONF['DefaultBlog']);
-		} else {
-			$b =& $blog;
-		}
-		$blogurl = $b->getURL();
-		
-		if (!$blogurl) {
-			if($blog) {
-				$b_tmp   =& $manager->getBlog($CONF['DefaultBlog']);
-				$blogurl =  $b_tmp->getURL();
-			}
-			if (!$blogurl) {
-				$blogurl = $CONF['IndexURL'];
-				if ($CONF['URLMode'] != 'pathinfo'){
-					if ($data['type'] == 'pageparser') {
-						$blogurl .= 'index.php';
-					} else {
-						$blogurl  = $CONF['Self'];
-					}
-				}
-			}
-		}
-		if ($CONF['URLMode'] == 'pathinfo'){
-			if (substr($blogurl, -1) == '/') {
-				$blogurl = substr($blogurl, 0, -1);
-			}
-		}
-		$CONF['BlogURL']        = $blogurl;
-		$CONF['ItemURL']        = $blogurl;
-		$CONF['CategoryURL']    = $blogurl;
-		$CONF['ArchiveURL']     = $blogurl;
-		$CONF['ArchiveListURL'] = $blogurl;
-		$CONF['SearchURL']      = $blogurl;
-//		$CONF['MemberURL']      = $blogurl;
 	}
 
 	public function event_PreItem($data)
@@ -2091,27 +1409,32 @@ class NP_CustomURL extends NucleusPlugin
 		}
 	}
 
-	function createItemForm($item_id = 0)
+	public function event_PostMoveItem($data)
 	{
-		global $CONF;
-		if ($item_id) {
-			$query   = 'SELECT obj_name as result'
-				     . ' FROM         %s'
-				     . ' WHERE obj_param = "item"'
-				     . ' AND      obj_id = %d';
-			$item_id = intval($item_id);
-			$res     = quickQuery(sprintf($query, _CUSTOMURL_TABLE, $item_id));
-			$ipath   = substr($res, 0, strlen($res)-5);
-		} else {
-			$ipath   = $this->getOption('customurl_dfitem');
+		$query      = 'UPDATE %s SET obj_bid = %d'
+					. " WHERE obj_param = '%s' AND obj_id = %d";
+		$destblogid = intval($data['destblogid']);
+		$item_id    = intval($data['itemid']);
+		sql_query(sprintf($query, _CUSTOMURL_TABLE, $destblogid, 'item', $item_id));
+	}
+
+	public function event_PostMoveCategory($data)
+	{
+		$query      = 'UPDATE %s SET obj_bid = %d'
+					. " WHERE obj_param = '%s' AND obj_id = %d";
+		$destblogid = intval($data['destblog']->blogid);
+		$cat_id     = intval($data['catid']);
+		sql_query(sprintf($query, _CUSTOMURL_TABLE, $destblogid, 'category', $cat_id));
+		$query      = 'SELECT inumber FROM %s WHERE icat = %d';
+		$query      = sprintf($query, sql_table('item'), $cat_id);
+		$items      = sql_query($query);
+		while ($oItem = sql_fetch_object($items)) {
+			$odata = array(
+						   'destblogid' => $destblogid,
+						   'itemid'     => $oItem->inumber
+						  );
+			$this->event_PostMoveItem($odata);
 		}
-		echo <<<OUTPUT
-<h3>Custom URL</h3>
-<p>
-<label for="plug_custom_url">Custom Path:</label>
-<input id="plug_custom_url" name="plug_custom_url_path" value="{$ipath}" />
-</p>
-OUTPUT;
 	}
 
 	public function event_PrePluginOptionsUpdate($data)
@@ -2167,35 +1490,813 @@ OUTPUT;
 		return;
 	}
 
-	public function event_PostMoveItem($data)
+	public function event_PrePluginOptionsEdit(&$data)
 	{
-		$query      = 'UPDATE %s SET obj_bid = %d'
-					. " WHERE obj_param = '%s' AND obj_id = %d";
-		$destblogid = intval($data['destblogid']);
-		$item_id    = intval($data['itemid']);
-		sql_query(sprintf($query, _CUSTOMURL_TABLE, $destblogid, 'item', $item_id));
-	}
-
-	public function event_PostMoveCategory($data)
-	{
-		$query      = 'UPDATE %s SET obj_bid = %d'
-					. " WHERE obj_param = '%s' AND obj_id = %d";
-		$destblogid = intval($data['destblog']->blogid);
-		$cat_id     = intval($data['catid']);
-		sql_query(sprintf($query, _CUSTOMURL_TABLE, $destblogid, 'category', $cat_id));
-		$query      = 'SELECT inumber FROM %s WHERE icat = %d';
-		$query      = sprintf($query, sql_table('item'), $cat_id);
-		$items      = sql_query($query);
-		while ($oItem = sql_fetch_object($items)) {
-			$odata = array(
-						   'destblogid' => $destblogid,
-						   'itemid'     => $oItem->inumber
-						  );
-			$this->event_PostMoveItem($odata);
+		global $member;
+		if ($data['context'] == 'member' && !$member->isAdmin())
+		{
+			$allow = $this->getOption('customurl_allow_edit_member_uri') == 'yes';
+			$myid = $this->getID();
+			if (!$allow)
+				foreach($data['options'] as $k => $v)
+					if ($v['pid'] == $myid)
+						unset($data['options'][$k]);
 		}
 	}
 
-	function RegistPath($objID, $path, $bid, $oParam, $name, $new = FALSE )
+	public function event_PostUpdatePlugin(&$data)
+	{
+		if ( method_exists( 'NucleusPlugin' , 'existOptionDesc' ) )  // method_exists , PHP do not search parent functions
+		{
+			if ( !$this->existOptionDesc( 'customurl_allow_edit_member_uri' ) )
+				$this->createOption('customurl_allow_edit_member_uri', _OP_ALLOW_EDIT_MEMBER_URI, 'yesno', 'no');
+		}
+	}
+	
+// merge NP_RightURL
+	public function event_PreSkinParse($data)
+	{
+		global $CONF, $manager, $blog, $catid, $itemid, $subcatid;
+		global $memberid;
+		if (!$blog) {
+			$b =& $manager->getBlog($CONF['DefaultBlog']);
+		} else {
+			$b =& $blog;
+		}
+		$blogurl = $b->getURL();
+		
+		if (!$blogurl) {
+			if($blog) {
+				$b_tmp   =& $manager->getBlog($CONF['DefaultBlog']);
+				$blogurl =  $b_tmp->getURL();
+			}
+			if (!$blogurl) {
+				$blogurl = $CONF['IndexURL'];
+				if ($CONF['URLMode'] != 'pathinfo'){
+					if ($data['type'] == 'pageparser') {
+						$blogurl .= 'index.php';
+					} else {
+						$blogurl  = $CONF['Self'];
+					}
+				}
+			}
+		}
+		if ($CONF['URLMode'] == 'pathinfo'){
+			if (substr($blogurl, -1) == '/') {
+				$blogurl = substr($blogurl, 0, -1);
+			}
+		}
+		$CONF['BlogURL']        = $blogurl;
+		$CONF['ItemURL']        = $blogurl;
+		$CONF['CategoryURL']    = $blogurl;
+		$CONF['ArchiveURL']     = $blogurl;
+		$CONF['ArchiveListURL'] = $blogurl;
+		$CONF['SearchURL']      = $blogurl;
+//		$CONF['MemberURL']      = $blogurl;
+	}
+	
+	public function event_QuickMenu(&$data)
+	{
+		global $member;
+		$quickLink   = ($this->getOption( 'customurl_quicklink') == 'yes');
+		$memberCheck = ($member->isLoggedIn() && $member->isAdmin());
+		if (!$quickLink || !$memberCheck) {
+			return;
+		}
+		array_push(
+			$data['options'],
+			array(
+				'title'   => _ADMIN_TITLE,
+				'url'     => $this->getAdminURL(),
+				'tooltip' => _QUICK_TIPS
+			)
+		);
+	}
+	
+	public function install()
+	{
+		include_once($this->getDirectory().'inc/install.inc.php');
+	}
+
+	public function unInstall()
+	{
+		if ($this->getOption('customurl_tabledel') == 'yes') {
+			sql_query(parseQuery('DROP TABLE [@prefix@]plug_customurl'));
+		}
+		$this->deleteOption('customurl_archive');
+		$this->deleteOption('customurl_archives');
+		$this->deleteOption('customurl_member');
+		$this->deleteOption('customurl_dfitem');
+		$this->deleteOption('customurl_dfcat');
+		$this->deleteOption('customurl_dfscat');
+		$this->deleteOption('customurl_notfound');
+		$this->deleteOption('customurl_tabledel');
+		$this->deleteOption('customurl_quicklink');
+		$this->deleteOption('customurl_allow_edit_member_uri');
+		$this->deleteBlogOption('use_customurl');
+		$this->deleteBlogOption('redirect_normal');
+		$this->deleteBlogOption('redirect_search');
+		$this->deleteBlogOption('customurl_bname');
+//		$this->deleteItemOption('customurl_iname');
+		$this->deleteMemberOption('customurl_mname');
+		$this->deleteCategoryOption('customurl_cname');
+	}
+
+	private function _createNewPath($type, $n_table, $id, $bids)
+	{
+		$query = "CREATE TABLE [@prefix@]plug_customurl_temp SELECT obj_id, obj_param FROM [@prefix@]plug_customurl WHERE obj_param='[@type@]'";
+		sql_query(parseQuery($query, array('type'=>$type)));
+		$TmpQuery    = 'SELECT    %s, %s '
+					 . 'FROM      %s as ttb '
+					 . 'LEFT JOIN %s as tcu '
+					 . 'ON        ttb.%s = tcu.obj_id '
+					 . 'WHERE     tcu.obj_id is null';
+		$table       = sql_table($n_table);
+		$tmpTable    = sql_table('plug_customurl_temp');
+		$TmpQuery    = sprintf($TmpQuery, $id, $bids, $table, $tmpTable, $id);
+		$temp        = sql_query($TmpQuery);
+		if ($temp) {
+			while ($row = sql_fetch_array($temp)) {
+				switch ($type) {
+					case 'blog':
+						//set access by BlogshortName/
+						$newPath = $row[$bids];
+						$blgid   = 0;
+					break;
+					case 'item':
+						//set access by (itemkey_template)_itemid.html
+						$tque    = 'SELECT '
+								 . 'itime as result '
+								 . 'FROM %s '
+								 . 'WHERE inumber = %d';
+						$tque    = sprintf($tque, $table, intval($row[$id]));
+						$itime   = quickQuery($tque);
+						list($y, $m, $d, $trush) = sscanf($itime, '%d-%d-%d %s');
+						$param['year']  = sprintf('%04d', $y);
+						$param['month'] = sprintf('%02d', $m);
+						$param['day']   = sprintf('%02d', $d);
+						$itplt   = $this->getOption('customurl_dfitem');
+						$ikey    = TEMPLATE::fill($itplt, $param);
+						$newPath = $ikey . '_' . $row[$id] . '.html';
+						$blgid   = $row[$bids];
+					break;
+					case 'category':
+						//set access by (categorykey_template)_categoryid/
+						$newPath = $this->getOption('customurl_dfcat') . '_' . $row[$id];
+						$blgid   = $row[$bids];
+					break;
+					case 'member':
+						//set access by loginName.html
+						$newPath = $row[$bids] . '.html';
+						$blgid   = 0;
+					break;
+					case 'subcategory':
+						//set access by (subcategorykey_template)_subcategoryid/
+						$newPath = $this->getOption('customurl_dfscat') . '_' . $row[$id];
+						$blgid   = $row[$bids];
+					break;
+					default:
+					break;
+				}
+				$insertQuery = 'INSERT INTO %s '
+							 . '(obj_param, obj_id, obj_name, obj_bid) '
+							 . "VALUES ('%s', %d, '%s', %d)";
+				$row[$id]    = intval($row[$id]);
+				$blgid       = intval($blgid);
+				sql_query(sprintf($insertQuery, _CUSTOMURL_TABLE, $type, $row[$id], $newPath, $blgid));
+			}
+		}
+		$query = "SELECT obj_id, obj_name FROM [@prefix@]plug_customurl WHERE obj_param='[@type@]'";
+		$temp  = sql_query(parseQuery($query, array('type'=>$type)));
+		while ($row = sql_fetch_array($temp)) {
+			$name = $row['obj_name'];
+			$id   = intval($row['obj_id']);
+			switch ($type) {
+				case 'blog':
+					$this->setBlogOption($id, 'customurl_bname', $name);
+				break;
+				case 'category':
+					$this->setCategoryOption($id, 'customurl_cname', $name);
+				break;
+				case 'member':
+					$obj_name = substr($name, 0, -5);
+					$this->setMemberOption($id, 'customurl_mname', $obj_name);
+				break;
+				default:
+				break;
+			}
+		}
+
+		sql_query('DROP TABLE IF EXISTS ' . $tmpTable);
+	}
+	
+	private function pluginCheck($pluginName)
+	{
+		global $manager;
+		if (!$manager->pluginInstalled('NP_' . $pluginName)) {
+			return;
+		}
+		$plugin =& $manager->getPlugin('NP_' . $pluginName);
+		return $plugin;
+	}
+
+	private function goNP_ExtraSkinJP()
+	{
+        global $CONF;
+		$ExtraSkinJP = $this->pluginCheck('ExtraSkinJP');
+		// under v3.2 needs this
+		if ($CONF['DisableSite'] && !$member->isAdmin()) {
+			header('Location: ' . $CONF['DisableSiteURL']);
+			exit;
+		}
+		$extraParams = explode("/", serverVar('PATH_INFO'));
+		array_shift ($extraParams);
+
+		if (isset($extraParams[1]) && preg_match("/^([1-9]+[0-9]*)(\?.*)?$/", $extraParams[1], $matches)) {
+			$extraParams[1] = $matches[1];
+		}
+
+		$ExtraSkinJP->extra_selector($extraParams);
+		exit;
+	}
+
+// decode 'path name' to 'id'
+	private function getRequestPathInfo($linkObj)
+	{
+		$query = "SELECT obj_id as result FROM [@prefix@]plug_customurl WHERE obj_name='[@name@]' AND obj_bid='[@bid@]' AND obj_param='[@linkparam@]'";
+		
+		$data = array();
+		$data['name']      = sql_real_escape_string($linkObj['name']);
+		$data['bid']       = sql_real_escape_string($linkObj['bid']);
+		$data['linkparam'] = sql_real_escape_string($linkObj['linkparam']);
+		
+		if (!$ObjID = quickQuery(parseQuery($query, $data))) {
+			return;
+		}
+		
+		return intval($ObjID);
+	}
+
+// Receive TrackBack ping
+	private function _trackback($bid, $path)
+	{
+		$blog_id   = intval($bid);
+		$TrackBack = $this->pluginCheck('TrackBack');
+		if ($TrackBack) {
+			if (substr($path, -5, 5) == '.html') {
+				$linkObj = array (
+								  'linkparam' => 'item',
+								  'bid'       => $blog_id,
+								  'name'      => $path
+								 );
+				$item_id = $this->getRequestPathInfo($linkObj);
+				if ($item_id) {
+					$tb_id = intval($item_id);
+				} else {
+					doError(_NO_SUCH_URI);
+				}
+			} else {
+				$tb_id = intval($path);
+			}
+
+			$errorMsg = $TrackBack->handlePing($tb_id);
+			if ($errorMsg != '') {
+				$TrackBack->xmlResponse($errorMsg);
+			} else {
+				$TrackBack->xmlResponse();
+			}
+		}
+		exit;
+	}
+
+	private function _createSubCategoryLink($scid)
+	{
+		$scids     = $this->getParents(intval($scid));
+		$subcatids = explode('/', $scids);
+		$eachPath  = array();
+		foreach ($subcatids as $sid) {
+			$subcat_id = intval($sid);
+			$query     = 'SELECT obj_name as result'
+					   . ' FROM         %s'
+					   . ' WHERE    obj_id = %d'
+					   . " AND   obj_param = '%s'";
+			$query     = sprintf($query, _CUSTOMURL_TABLE, $subcat_id, 'subcategory');
+			$path      = quickQuery($query);
+			if ($path) {
+				$eachPath[] = $path;
+			} else {
+				$tempParam = array(
+								   'plug_multiple_categories_sub',
+								   'scatid',
+								   $subcat_id
+								  );
+				if (!$this->_isValid($tempParam)) {
+					return $url = _NOT_VALID_SUBCAT;
+				} else {
+					$scpath = $this->getOption('customurl_dfscat') . '_' . $subcat_id;
+					$query  = 'SELECT catid as result FROM %s WHERE scatid = %d';
+					$query  = sprintf($query, _C_SUBCAT_TABLE, $subcat_id);
+					$cid    = quickQuery($query);
+					if (!$cid) {
+						return 'no_such_subcat=' . $subcat_id . '/';
+					}
+					$this->RegistPath($subcat_id, $scpath, $cid, 'subcategory', 'subcat_' . $subcat_id, TRUE);
+					$eachPath[] = $scpath;
+				}
+			}
+		}
+		$subcatPath = join('/', $eachPath);
+		return $subcatPath . '/';
+	}
+
+	private function getParents($subid)
+	{
+		$mcatPlugin  = $this->pluginCheck('MultipleCategories');
+		$mcatVarsion = $mcatPlugin->getVersion() * 100;
+		if (intval($mcatVarsion) < 40) {
+			return intval($subid);
+		}
+		$subcat_id          = intval($subid);
+		$query              = 'SELECT '
+							. 'scatid, '
+							. 'parentid '
+							. 'FROM %s '
+							. 'WHERE scatid = %d';
+		$query              = sprintf($query, _C_SUBCAT_TABLE, $subcat_id);
+		$res                = sql_query($query);
+		list($sid, $parent) = sql_fetch_row($res);
+		if ($parent != 0) {
+			$r = $this->getParents($parent) . '/' . $sid;
+		} else {
+			$r = $sid;
+		}
+		return $r;
+	}
+
+	private function _generateCategoryLink($cid)
+	{
+		global $CONF;
+		$cat_id = intval($cid);
+		$path   = $this->getCategoryOption($cat_id, 'customurl_cname');
+		if ($path) {
+			return $path . '/';
+		} else {
+			$catData = array(
+							 'category',
+							 'catid',
+							 $cat_id
+							);
+			if (!$this->_isValid($catData)) {
+				return $url = _NOT_VALID_CAT;
+			} else {
+				$cpath   = $this->getOption('customurl_dfcat') . '_' . $cat_id;
+				$blog_id = intval(getBlogIDFromCatID($cat_id));
+				$catname = 'catid_' . $cat_id;
+				$this->RegistPath($cat_id, $cpath, $blog_id, 'category', $catname, TRUE);
+				return $cpath . '/';
+			}
+		}
+	}
+
+	private function _generateBlogLink($bid)
+	{
+		global $manager, $CONF;
+		
+		static $url = array();
+		
+		if(isset($url[$bid]))
+		{
+			return $url[$bid];
+		}
+		
+		$blog_id = intval($bid);
+		$param   = array(
+						 'blog',
+						 'bnumber',
+						 $blog_id
+						);
+		if (!$this->_isValid($param)) {
+			return _NOT_VALID_BLOG;
+		}
+		$b    =& $manager->getBlog($blog_id);
+		$burl = $b->getURL();
+		if ($this->getBlogOption($blog_id, 'use_customurl') == 'yes') {
+			if ($blog_id == $CONF['DefaultBlog'] && $this->getOption('customurl_incbname') == 'no') {
+				if (empty($burl)) {
+					$this->_updateBlogURL($CONF['IndexURL'], $blog_id, __LINE__);
+				}
+				$burl = $CONF['IndexURL'];
+			} else {
+				if (empty($burl)) {
+					$burl = $CONF['IndexURL'];
+				}
+				if (substr($burl, -4) == '.php') {
+					$path = $this->getBlogOption($blog_id, 'customurl_bname');
+					file_put_contents('/var/www/vhosts/bengoshi-blog.com/httpdocs/_log/debuglog.txt', __LINE__.$path."\n", FILE_APPEND);
+					if ($path) {
+						$burl = rtrim($CONF['IndexURL'],'/').'/' . $path.'/';
+					} else {
+						$query = 'SELECT bshortname as result FROM [@prefix@]blog WHERE bnumber = [@bnumber@]';
+						$query = parseQuery($query, array('bnumber'=>$blog_id));
+						$bpath = quickQuery($query);
+						$this->RegistPath($blog_id, $bpath, 0, 'blog', $bpath, TRUE);
+						$burl  = rtrim($CONF['IndexURL'],'/').'/' . $bpath . '/';
+					}
+					$this->_updateBlogURL($burl, $blog_id, __LINE__);
+				}
+			}
+		}
+		else
+		{
+			if (strlen($burl)==0) {
+				$usePathInfo = ($CONF['URLMode'] == 'pathinfo');
+				if ($usePathInfo) {
+					$burl = rtrim($CONF['BlogURL'],'/') . '/' . $CONF['BlogKey'] . '/' . $blog_id;
+				} else {
+					$burl = $CONF['BlogURL'] . '?blogid=' . $blog_id;
+				}
+			}
+		}
+		$url[$bid] = trim($burl, '/');
+		return $url[$bid];
+	}
+
+	private function _updateBlogURL($burl, $blogid, $line)
+	{
+		static $excuted = array();
+		
+		file_put_contents('/var/www/vhosts/bengoshi-blog.com/httpdocs/_log/debuglog.txt', 'line:' . $line.' |'.$_SERVER['REQUEST_URI'] . '|'.$burl.'|'.$blogid.'|'."\n", FILE_APPEND);
+		
+		if(isset($excuted[$blogid])) return;
+		
+		$blogid      = intval($blogid);
+		$burl_update = 'UPDATE %s '
+					 . "SET    burl = '%s' "
+					 . 'WHERE  bnumber = %d';
+		$burl        = $this->quote_smart($burl);
+		$bTable      = sql_table('blog');
+		sql_query(sprintf($burl_update, $bTable, $burl, $blogid));
+		$excuted[$blogid] = $burl;
+	}
+
+	private function _addLinkParams($link, $params)
+	{
+		global $CONF, $manager, $catid;
+		$arcTmp      = (preg_match('/' . $this->getOption('customurl_archives') . '/', $link));
+		$arcsTmp     = (preg_match('/' . $this->getOption('customurl_archive') . '/', $link));
+		$isArchives  = ($arcTmp || $arcsTmp);
+		$mcategories = $this->pluginCheck('MultipleCategories');
+		if ($mcategories) {
+			$param = array();
+			$mcategories->event_PreSkinParse($param);
+			global $subcatid;
+			if (method_exists($mcategories, 'getRequestName')) {
+				$subrequest = $mcategories->getRequestName();
+			} else {
+				$subrequest = 'subcatid';
+			}
+		}
+		$linkExtra = '';
+		if (is_array($params)) {
+			if (array_key_exists('archives', $params)) {
+				$linkExtra = $this->getOption('customurl_archives') . '/';
+				unset($params['archives']);
+			} elseif (array_key_exists('archivelist', $params)) {
+				$linkExtra = $this->getOption('customurl_archives') . '/';
+				unset($params['archivelist']);
+			} elseif (array_key_exists('archive', $params)) {
+				$y = $m = $d = '';
+				sscanf($params['archive'], '%d-%d-%d', $y, $m, $d);
+				if ($d) {
+					$arc = sprintf('%04d-%02d-%02d', $y, $m, $d);
+				} elseif ($m) {
+					$arc = sprintf('%04d-%02d',      $y, $m);
+				} else {
+					$arc = sprintf('%04d',           $y);
+				}
+				$linkExtra = $this->getOption('customurl_archive') . '/' . $arc;
+				unset($params['archive']);
+			}
+			if (array_key_exists('blogid', $params)) {
+				unset($params['blogid']);
+			}
+			$paramlink = array();
+			foreach ($params as $param => $value) {
+				switch ($param) {
+					case 'catid':
+					case $CONF['CategoryKey']:
+						$cid         = intval($value);
+						$paramlink[] = $this->_generateCategoryLink($cid);
+					break;
+					case $subrequest:
+						if ($mcategories) {
+							$sid         = intval($value);
+							$paramlink[] = $this->_createSubCategoryLink($sid);
+						}
+					break;
+					default:
+						$paramlink[] = $param . '/' . $value . '/';
+					break;
+				}
+			}
+			if (substr($link, -5, 5) == '.html' || $isArchives) {
+				$link = join('', $paramlink) . $link;
+			} else {
+				$link .= join('', $paramlink);
+			}
+		}
+		if ($linkExtra) {
+			$link .= $linkExtra;
+		}
+		if (requestVar('skinid')) {
+			$skinid = hsc(requestVar('skinid'));
+			if (!$link) {
+				$link = '?skinid=' . $skinid;
+			} elseif (strpos('?', $link)) {
+				$link .= '&amp;skinid=' . $skinid;
+			} else {
+				if (substr($link, -1) != '/' && !empty($link)) {
+					$link .= '/?skinid=' . $skinid;
+				} else {
+					$link .= '?skinid=' . $skinid;
+				}
+			}
+		}
+		if (strstr ($link, '//')) {
+			$link = preg_replace("/([^:])\/\//", "$1/", $link);
+		}
+		return $link;
+	}
+	
+	private function URL_Callback($data, $scatFlag = '')
+	{
+		$l_data  = explode(",", $data[1]);
+		$l_type  = $l_data[0];
+		$target  = $l_data[1];
+		$title   = $l_data[2];
+		if (!$l_type) {
+			if(!isset($this->currentItem->itemid)) return;
+			$item_id = intval($this->currentItem->itemid);
+			$link_params = array (
+								  'i',
+								  $item_id,
+								  'i'
+								 );
+		} else {
+			$link_data = explode("/", $l_type);
+			if (count($link_data) == 1) {
+				$link_params = array (
+									  'i',
+									  intval($l_type),
+									  'i'
+									 );
+			} elseif (count($link_data) == 2) {
+				if ($link_data[1] == 'path') {
+					$link_params = array (
+										  'i',
+										  $link_data[0],
+										  'path'
+										 );
+				} else {
+					$link_params = array (
+										  $link_data[0],
+										  intval($link_data[1]),
+										  'i'
+										 );
+				}
+			} else {
+				$link_params = array (
+									  $link_data[0],
+									  $link_data[1],
+									  $link_data[2]
+									 );
+			}
+		}
+		$url = $this->_genarateObjectLink($link_params, $scatFlag);
+		if ($target) {
+			if ($title) {
+				$ObjLink = '<a href="' . hsc($url) . '" '
+						 . 'title="' . hsc($title) . '">'
+						 . hsc($target) . '</a>';
+			} else {
+				$ObjLink = '<a href="' . hsc($url) . '" '
+						 . 'title="' . hsc($target) . '">'
+						 . hsc($target) . '</a>';
+			}
+		} else {
+			$ObjLink = hsc($url);
+		}
+		return $ObjLink;
+	}
+
+	private function _isValid($data)
+	{
+		$query   = 'SELECT count(*) AS result FROM %s WHERE %s = %d';
+		$data[2] = $this->quote_smart($data[2]);
+		$query   = sprintf($query, sql_table($data[0]), $data[1], $data[2]);
+		$ct      = intval(quickQuery($query));
+		return ($ct != 0);
+	}
+
+	private function _genarateObjectLink($data, $scatFlag = '')
+	{
+		global $CONF, $manager, $blog;
+		$ext = substr(serverVar('REQUEST_URI'), -4);
+		if ($ext == '.rdf' || $ext == '.xml') {
+			$CONF['URLMode']  = 'pathinfo';
+		}
+		if ($CONF['URLMode'] != 'pathinfo') {
+			return;
+		}
+		$query = "SELECT %s as result FROM %s WHERE %s = '%s'";
+		switch ($data[0]) {
+			case 'b':
+				if ($data[2] == 'n') {
+					$bid = getBlogIDFromName($data[1]);
+				} else {
+					$bid = $data[1];
+				}
+				$blog_id = intval($bid);
+				$param   = array(
+								 'blog',
+								 'bnumber',
+								 $blog_id
+								);
+				if (!$this->_isValid($param)) {
+					$url = _NOT_VALID_BLOG;
+				} else {
+					$url = $this->_generateBlogLink($blog_id) . '/';
+				}
+			break;
+			case 'c':
+				if ($data[2] == 'n') {
+					$cid = getCatIDFromName($data[1]);
+				} else {
+					$cid = $data[1];
+				}
+				$cat_id = intval($cid);
+				$param = array(
+							   'category',
+							   'catid',
+							   $cat_id
+							  );
+				if (!$this->_isValid($param)) {
+					$url = _NOT_VALID_CAT;
+				} else {
+					$url = createCategoryLink($cat_id);
+				}
+			break;
+			case 's':
+				$mcategories = $this->pluginCheck('MultipleCategories');
+				if ($mcategories) {
+					if ($data[2] == 'n') {
+						$temp = $this->quote_smart($data[1]);
+						$sque = sprintf($query, 'scatid', _C_SUBCAT_TABLE, 'sname', $temp);
+						$scid = quickQuery($sque);
+					} else {
+						$scid = $data[1];
+					}
+					$sub_id = intval($scid);
+					$param  = array(
+									'plug_multiple_categories_sub',
+									'scatid',
+									$sub_id
+								   );
+					if (!$this->_isValid($param)) {
+						$url = _NOT_VALID_SUBCAT;
+					} else {
+						$cqe        = sprintf($query, 'catid', _C_SUBCAT_TABLE, 'scatid', $sub_id);
+						$cid        = quickQuery($cqe);
+						$cid        = intval($cid);
+						if (method_exists($mcategories, "getRequestName")) {
+							$subrequest = $mcategories->getRequestName();
+						}
+						if (!$subrequest) {
+							$subrequest = 'subcatid';
+						}
+						$linkParam = array(
+										   $subrequest => $sub_id
+										  );
+						$url       = createCategoryLink($cid, $linkParam);
+					}
+				}
+			break;
+			case 'i':
+				$param = array(
+							   'item',
+							   'inumber',
+							   intval($data[1])
+							  );
+				if (!$this->_isValid($param)) {
+					$url = _NOT_VALID_ITEM;
+				} else {
+					if ($scatFlag) {
+						global $catid, $subcatid;
+						if (!empty($catid)) {
+							$linkparams['catid'] = intval($catid);
+						}
+						if (!empty($subcatid)) {
+							$mcategories = $this->pluginCheck('MultipleCategories');
+							if ($mcategories) {
+								if (method_exists($mcategories, 'getRequestName')) {
+									$subrequest = $mcategories->getRequestName();
+								} else {
+									$subrequest = 'subcatid';
+								}
+							}
+							$linkparams[$subrequest] = intval($subcatid);
+						}
+						$url = createItemLink(intval($data[1]), $linkparams);
+					} else {
+						$blink = $this->_generateBlogLink(getBlogIDFromItemID(intval($data[1])));
+						$i_query = 'SELECT obj_name as result '
+								 . 'FROM %s '
+								 . 'WHERE obj_param = "item" '
+								 . 'AND      obj_id = %d';
+						$i_query = sprintf($i_query, _CUSTOMURL_TABLE, intval($data[1]));
+						$path    = quickQuery($i_query);
+						if ($path) {
+							if ($data[2] == 'path') {
+								$url = $path;
+							} else {
+								$url = $blink . '/' . $path;
+							}
+						} else {
+							if ($data[2] == 'path') {
+								$url = $CONF['ItemKey'] . '/'
+									 . intval($data[1]);
+							} else {
+								$url = $blink . '/' . $CONF['ItemKey'] . '/'
+									 . intval($data[1]);
+							}
+						}
+					}
+				}
+			break;
+			case 'm':
+				if ($data[2] == 'n') {
+					$data[1] = $this->quote_smart($data[1]);
+					$mque    = sprintf($query, 'mnumber', sql_table('member'), 'mname', $data[1]);
+					$mid     = quickQuery($mque);
+				} else {
+					$mid = $data[1];
+				}
+				$member_id = intval($mid);
+				$param = array(
+							   'member',
+							   'mnumber',
+							   $member_id
+							  );
+				if (!$this->_isValid($param)) {
+					$url = _NOT_VALID_MEMBER;
+				} else {
+					$url = createMemberLink($member_id);
+				}
+			break;
+		}
+		return $url;
+	}
+
+	private function getSkinContent($pageType, $skinID)
+	{
+		$skinID   = intval($skinID);
+		$pageType = addslashes($pageType);
+		$query    = 'SELECT scontent '
+				  . 'FROM %s '
+				  . 'WHERE sdesc = %d '
+				  . 'AND   stype = %d';
+		$query    = sprintf($query, sql_table('skin'), $skinID, $pageType);
+		$res      = sql_query($query);
+
+		if ($res && ($obj = sql_fetch_object($res)))
+			return $obj->scontent;
+		return '';
+	}
+
+	private function createItemForm($item_id = 0)
+	{
+		global $CONF;
+		if ($item_id) {
+			$query   = 'SELECT obj_name as result'
+				     . ' FROM         %s'
+				     . ' WHERE obj_param = "item"'
+				     . ' AND      obj_id = %d';
+			$item_id = intval($item_id);
+			$res     = quickQuery(sprintf($query, _CUSTOMURL_TABLE, $item_id));
+			$ipath   = substr($res, 0, strlen($res)-5);
+		} else {
+			$ipath   = $this->getOption('customurl_dfitem');
+		}
+		echo <<<OUTPUT
+<h3>Custom URL</h3>
+<p>
+<label for="plug_custom_url">Custom Path:</label>
+<input id="plug_custom_url" name="plug_custom_url_path" value="{$ipath}" />
+</p>
+OUTPUT;
+	}
+	
+	private function RegistPath($objID, $path, $bid, $oParam, $name, $new = FALSE )
 	{
 		global $CONF;
 		switch($oParam) {
@@ -2306,7 +2407,7 @@ OUTPUT;
 		return $msg;
 	}
 
-	function error($msg = '')
+	private function error($msg = '')
 	{
 		global $admin;
 
@@ -2318,7 +2419,7 @@ OUTPUT;
 		return;
 	}
 
-	function quote_smart($value)
+	private function quote_smart($value)
 	{
 		if (get_magic_quotes_gpc()) $value = stripslashes($value);
 		if (!is_numeric($value)) {
@@ -2329,7 +2430,7 @@ OUTPUT;
 		return $value;
 	}
 
-	function convertLocalTrackbackURL($data)
+	private function convertLocalTrackbackURL($data)
 	{
 		global $manager, $CONF;
 		$ping_urls_count = 0;
@@ -2385,116 +2486,5 @@ OUTPUT;
 			}
 		}
 		$_REQUEST['trackback_ping_url'] = join ("\n", $ping_urls);
-	}
-	
-	public function event_PrePluginOptionsEdit(&$data)
-	{
-		global $member;
-		if ($data['context'] == 'member' && !$member->isAdmin())
-		{
-			$allow = $this->getOption('customurl_allow_edit_member_uri') == 'yes';
-			$myid = $this->getID();
-			if (!$allow)
-				foreach($data['options'] as $k => $v)
-					if ($v['pid'] == $myid)
-						unset($data['options'][$k]);
-		}
-	}
-
-	public function event_PostUpdatePlugin(&$data)
-	{
-		if ( method_exists( 'NucleusPlugin' , 'existOptionDesc' ) )  // method_exists , PHP do not search parent functions
-		{
-			if ( !$this->existOptionDesc( 'customurl_allow_edit_member_uri' ) )
-				$this->createOption('customurl_allow_edit_member_uri', _OP_ALLOW_EDIT_MEMBER_URI, 'yesno', 'no');
-		}
-	}
-	
-	private function _createNewPath($type, $n_table, $id, $bids)
-	{
-		$query = "CREATE TABLE [@prefix@]plug_customurl_temp SELECT obj_id, obj_param FROM [@prefix@]plug_customurl WHERE obj_param='[@type@]'";
-		sql_query(parseQuery($query, array('type'=>$type)));
-		$TmpQuery    = 'SELECT    %s, %s '
-					 . 'FROM      %s as ttb '
-					 . 'LEFT JOIN %s as tcu '
-					 . 'ON        ttb.%s = tcu.obj_id '
-					 . 'WHERE     tcu.obj_id is null';
-		$table       = sql_table($n_table);
-		$tmpTable    = sql_table('plug_customurl_temp');
-		$TmpQuery    = sprintf($TmpQuery, $id, $bids, $table, $tmpTable, $id);
-		$temp        = sql_query($TmpQuery);
-		if ($temp) {
-			while ($row = sql_fetch_array($temp)) {
-				switch ($type) {
-					case 'blog':
-						//set access by BlogshortName/
-						$newPath = $row[$bids];
-						$blgid   = 0;
-					break;
-					case 'item':
-						//set access by (itemkey_template)_itemid.html
-						$tque    = 'SELECT '
-								 . 'itime as result '
-								 . 'FROM %s '
-								 . 'WHERE inumber = %d';
-						$tque    = sprintf($tque, $table, intval($row[$id]));
-						$itime   = quickQuery($tque);
-						list($y, $m, $d, $trush) = sscanf($itime, '%d-%d-%d %s');
-						$param['year']  = sprintf('%04d', $y);
-						$param['month'] = sprintf('%02d', $m);
-						$param['day']   = sprintf('%02d', $d);
-						$itplt   = $this->getOption('customurl_dfitem');
-						$ikey    = TEMPLATE::fill($itplt, $param);
-						$newPath = $ikey . '_' . $row[$id] . '.html';
-						$blgid   = $row[$bids];
-					break;
-					case 'category':
-						//set access by (categorykey_template)_categoryid/
-						$newPath = $this->getOption('customurl_dfcat') . '_' . $row[$id];
-						$blgid   = $row[$bids];
-					break;
-					case 'member':
-						//set access by loginName.html
-						$newPath = $row[$bids] . '.html';
-						$blgid   = 0;
-					break;
-					case 'subcategory':
-						//set access by (subcategorykey_template)_subcategoryid/
-						$newPath = $this->getOption('customurl_dfscat') . '_' . $row[$id];
-						$blgid   = $row[$bids];
-					break;
-					default:
-					break;
-				}
-				$insertQuery = 'INSERT INTO %s '
-							 . '(obj_param, obj_id, obj_name, obj_bid) '
-							 . "VALUES ('%s', %d, '%s', %d)";
-				$row[$id]    = intval($row[$id]);
-				$blgid       = intval($blgid);
-				sql_query(sprintf($insertQuery, _CUSTOMURL_TABLE, $type, $row[$id], $newPath, $blgid));
-			}
-		}
-		$query = "SELECT obj_id, obj_name FROM [@prefix@]plug_customurl WHERE obj_param='[@type@]'";
-		$temp  = sql_query(parseQuery($query, array('type'=>$type)));
-		while ($row = sql_fetch_array($temp)) {
-			$name = $row['obj_name'];
-			$id   = intval($row['obj_id']);
-			switch ($type) {
-				case 'blog':
-					$this->setBlogOption($id, 'customurl_bname', $name);
-				break;
-				case 'category':
-					$this->setCategoryOption($id, 'customurl_cname', $name);
-				break;
-				case 'member':
-					$obj_name = substr($name, 0, -5);
-					$this->setMemberOption($id, 'customurl_mname', $obj_name);
-				break;
-				default:
-				break;
-			}
-		}
-
-		sql_query('DROP TABLE IF EXISTS ' . $tmpTable);
 	}
 }
