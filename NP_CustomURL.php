@@ -316,12 +316,13 @@ class NP_CustomURL extends NucleusPlugin
 					redirect($redurl); // 302 Moved temporary
 					exit;
 				}
+			} else {
+				if($search_q) {
+					return;
+				}
+				$exLink = $search_q ? true : false;
 			}
-			$exLink = FALSE;
-			if (!$redirectSerch && $search_q) {
-				$exLink = TRUE;
-			}
-
+			
 // redirection nomal URL to FancyURL
 			$temp_req       = explode('?', serverVar('REQUEST_URI'));
 			$reqPath        = trim(end($temp_req), '/');
