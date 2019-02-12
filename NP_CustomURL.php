@@ -83,8 +83,8 @@ class NP_CustomURL extends NucleusPlugin
 			global $itemid, $CONF;
 			if ($this->getBlogOption($blogid, 'use_customurl') === 'yes') {
 				$tpl = 'SELECT obj_name as result';
-                $tpl .= ' FROM [+prefix+]plug_customurl '
-						  . 'WHERE obj_param = "item" AND obj_id=[+obj_id+]';
+                $tpl .= ' FROM [@prefix@]plug_customurl '
+						  . 'WHERE obj_param = "item" AND obj_id=[@obj_id@]';
 				$itempath = parseQuickQuery($tpl, array('obj_id'=>$itemid));
 				if ($target !== 'ext') {
 					$uri = $CONF['BlogURL'] . '/trackback/' . $itempath;
@@ -145,8 +145,8 @@ class NP_CustomURL extends NucleusPlugin
 			$blog_id = (int)getBlogIDFromItemID($item_id);
 			if ($this->getBlogOption($blog_id, 'use_customurl') === 'yes') {
 				$tpl      = 'SELECT obj_name as result '
-						  . 'FROM [+prefix+]plug_customurl WHERE obj_param = "item" '
-						  . 'AND obj_id = [+obj_id+]';
+						  . 'FROM [@prefix@]plug_customurl WHERE obj_param = "item" '
+						  . 'AND obj_id = [@obj_id@]';
 				$itempath = parseQuickQuery($tpl, array('obj_id'=>$item_id));
 				if ($target !== 'ext') {
 					$uri = $CONF['BlogURL'] . '/trackback/' . $itempath;
@@ -882,9 +882,9 @@ class NP_CustomURL extends NucleusPlugin
 						return;
 					}
 					$query = 'SELECT obj_name as result '
-						   . 'FROM [+prefix+]plug_customurl '
+						   . 'FROM [@prefix@]plug_customurl '
 						   . 'WHERE obj_param="item" '
-						   . 'AND obj_id=[+obj_id+]';
+						   . 'AND obj_id=[@obj_id@]';
 					$path  = parseQuickQuery($query, array('obj_id'=>$item_id));
 					if ($path) {
 						$objPath = $path;
@@ -1266,8 +1266,8 @@ class NP_CustomURL extends NucleusPlugin
 
 	public function event_PostDeleteBlog ($data)
 	{
-		$query  = "DELETE FROM [+prefix+]plug_customurl WHERE obj_id=[+obj_id+] AND obj_param='[+obj_param+]'";
-		$pquery = "DELETE FROM [+prefix+]plug_customurl WHERE obj_bid=[+obj_bid+] AND obj_param='[+obj_param+]'";
+		$query  = "DELETE FROM [@prefix@]plug_customurl WHERE obj_id=[@obj_id@] AND obj_param='[@obj_param@]'";
+		$pquery = "DELETE FROM [@prefix@]plug_customurl WHERE obj_bid=[@obj_bid@] AND obj_param='[@obj_param@]'";
 		$ph = array();
 
         $ph['obj_id'] = (int)$data['blogid'];
@@ -1279,7 +1279,7 @@ class NP_CustomURL extends NucleusPlugin
 		sql_query(parseQuery($pquery, $ph));
 
 		$cnm = sql_query(parseQuery(
-            'SELECT catid FROM [+prefix+]category WHERE cblog=[+blogid+]'
+            'SELECT catid FROM [@prefix@]category WHERE cblog=[@blogid@]'
             , array('blogid'=>(int)$data['blogid'])
         ));
 		while ($c = sql_fetch_object($cnm)) {
@@ -1296,11 +1296,11 @@ class NP_CustomURL extends NucleusPlugin
 	{
 		$ph['catid'] = (int)$data['catid'];
 		sql_query(parseQuery(
-            "DELETE FROM [+prefix+]plug_customurl WHERE obj_id=[+catid+] AND obj_param='category'"
+            "DELETE FROM [@prefix@]plug_customurl WHERE obj_id=[@catid@] AND obj_param='category'"
             , $ph
         ));
 		sql_query(parseQuery(
-            "DELETE FROM [+prefix+]plug_customurl WHERE obj_bid=[+catid+] AND obj_param='subcategory'"
+            "DELETE FROM [@prefix@]plug_customurl WHERE obj_bid=[@catid@] AND obj_param='subcategory'"
             , $ph
         ));
 	}
@@ -1308,7 +1308,7 @@ class NP_CustomURL extends NucleusPlugin
 	public function event_PostDeleteItem ($data)
 	{
 		sql_query(parseQuery(
-            "DELETE FROM [+prefix+]plug_customurl WHERE obj_id=[+itemid+] AND obj_param='item'"
+            "DELETE FROM [@prefix@]plug_customurl WHERE obj_id=[@itemid@] AND obj_param='item'"
             , array('itemid'=>(int)$data['itemid'])
         ));
 	}
@@ -1316,7 +1316,7 @@ class NP_CustomURL extends NucleusPlugin
 	public function event_PostDeleteMember ($data)
 	{
 		sql_query(parseQuery(
-            "DELETE FROM [+prefix+]plug_customurl WHERE obj_id=[+memberid+] AND obj_param='member'"
+            "DELETE FROM [@prefix@]plug_customurl WHERE obj_id=[@memberid@] AND obj_param='member'"
             , array('memberid'=>(int)$data['member']->id)
         ));
 	}
@@ -1337,7 +1337,7 @@ class NP_CustomURL extends NucleusPlugin
 
 		if (!$data['blog']->blogid) {
 			$bid = parseQuickQuery(
-                'SELECT cblog as result FROM [+prefix+]category WHERE catid=[+catid+]'
+                'SELECT cblog as result FROM [@prefix@]category WHERE catid=[@catid@]'
                 ,$ph
             );
 		} else {
@@ -1346,7 +1346,7 @@ class NP_CustomURL extends NucleusPlugin
 
 		if (!$data['name']) {
             $data['name'] = parseQuickQuery(
-                'SELECT cname as result FROM [+prefix+]category WHERE catid=[+catid+]'
+                'SELECT cname as result FROM [@prefix@]category WHERE catid=[@catid@]'
                 ,$ph
             );
 		}
@@ -1363,7 +1363,7 @@ class NP_CustomURL extends NucleusPlugin
 
 		list($y, $m, $d, $trush) = sscanf(
             parseQuickQuery(
-                'SELECT itime as result FROM [+prefix+]item WHERE inumber=[+item_id+]'
+                'SELECT itime as result FROM [@prefix@]item WHERE inumber=[@item_id@]'
                 ,$ph
             )
             ,'%d-%d-%d %s'
@@ -1378,7 +1378,7 @@ class NP_CustomURL extends NucleusPlugin
             ,(int)getBlogIDFromItemID($item_id)
             ,'item'
             ,parseQuickQuery(
-                'SELECT ititle as result FROM [+prefix+]item WHERE inumber=[+item_id+]'
+                'SELECT ititle as result FROM [@prefix@]item WHERE inumber=[@item_id@]'
                 ,$ph
             )
             ,true
@@ -1413,7 +1413,7 @@ class NP_CustomURL extends NucleusPlugin
 
 		list($y, $m, $d, $trush) = sscanf(
             parseQuickQuery(
-                'SELECT itime as result FROM [+prefix+]item WHERE inumber=[+item_id+]'
+                'SELECT itime as result FROM [@prefix@]item WHERE inumber=[@item_id@]'
                 ,$ph
             )
             , '%d-%d-%d %s'
@@ -1423,7 +1423,7 @@ class NP_CustomURL extends NucleusPlugin
         $date['day']   = sprintf('%02d', $d);
 		$ipath   = TEMPLATE::fill(requestVar('plug_custom_url_path'), $date);
 		$iname = parseQuickQuery(
-            'SELECT ititle as result FROM [+prefix+]item WHERE inumber=[+item_id+]'
+            'SELECT ititle as result FROM [@prefix@]item WHERE inumber=[@item_id@]'
             ,$ph
         );
 		$blog_id = (int)getBlogIDFromItemID($item_id);
@@ -1436,7 +1436,7 @@ class NP_CustomURL extends NucleusPlugin
 	public function event_PostMoveItem($data)
 	{
 		sql_query(parseQuery(
-            "UPDATE [+prefix+]plug_customurl SET obj_bid=[+blog_id+] WHERE obj_param='item' AND obj_id=[+item_id+]"
+            "UPDATE [@prefix@]plug_customurl SET obj_bid=[@blog_id@] WHERE obj_param='item' AND obj_id=[@item_id@]"
             , array(
                 'blog_id'=>(int)$data['destblogid']
                 ,'item_id'  =>(int)$data['itemid']
@@ -1451,12 +1451,12 @@ class NP_CustomURL extends NucleusPlugin
 		$ph['cat_id']     = (int)$data['catid'];
 
 		sql_query(parseQuery(
-            "UPDATE [+prefix+]plug_customurl SET obj_bid=[+blog_id+] WHERE obj_param='category' AND obj_id=[+cat_id+]"
+            "UPDATE [@prefix@]plug_customurl SET obj_bid=[@blog_id@] WHERE obj_param='category' AND obj_id=[@cat_id@]"
             , $ph)
         );
 
 		$items = sql_query(parseQuery(
-		        'SELECT inumber FROM [+prefix+]item WHERE icat=[+cat_id+]'
+		        'SELECT inumber FROM [@prefix@]item WHERE icat=[@cat_id@]'
                 ,$ph
             )
         );
@@ -1486,18 +1486,18 @@ class NP_CustomURL extends NucleusPlugin
                     }
 				}
 				$name = parseQuickQuery(
-                    'SELECT mname as result FROM [+prefix+]member WHERE mnumber=[+member_id+]'
+                    'SELECT mname as result FROM [@prefix@]member WHERE mnumber=[@member_id@]'
                     , array('member_id'=>$contextid)
                 );
 			} elseif ($data['context'] === 'category') {
 				$blogid = getBlogIDFromCatID($contextid);
 				$name = parseQuickQuery(
-                    'SELECT cname as result FROM [+prefix+]category WHERE catid=[+cat_id+]'
+                    'SELECT cname as result FROM [@prefix@]category WHERE catid=[@cat_id@]'
                     , array('cat_id'=>$contextid)
                 );
 			} else {
                 $name = parseQuickQuery(
-                    'SELECT bname as result FROM [+prefix+]blog WHERE bnumber=[+blog_id+]'
+                    'SELECT bname as result FROM [@prefix@]blog WHERE bnumber=[@blog_id@]'
                     , array('blog_id'=>$contextid)
                 );
 			}
@@ -1697,7 +1697,7 @@ class NP_CustomURL extends NucleusPlugin
 				}
 				sql_query(
                     parseQuery(
-                        "INSERT INTO [+prefix+]plug_customurl (obj_param, obj_id, obj_name, obj_bid) VALUES ('[+param+]',[+id+],'[+name+]',[+blog_id+])"
+                        "INSERT INTO [@prefix@]plug_customurl (obj_param, obj_id, obj_name, obj_bid) VALUES ('[@param@]',[@id@],'[@name@]',[@blog_id@])"
                         , array(
                             'param'=>$type,
                             'id'=>(int)$row[$id],
