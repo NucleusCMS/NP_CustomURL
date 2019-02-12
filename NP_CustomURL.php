@@ -66,7 +66,15 @@ class NP_CustomURL extends NucleusPlugin
 
 	public function init()
 	{
-		if(strpos(serverVar('REQUEST_URI'),'/nucleus/')===false) {
+	    global $CONF;
+
+        $ext = substr(serverVar('REQUEST_URI'), -4);
+        if ( in_array($ext,array('.rdf','.xml')) ) {
+            $CONF['URLMode']  = 'pathinfo';
+            return;
+        }
+
+        if(strpos(serverVar('REQUEST_URI'),'/nucleus/')===false) {
 			return;
 		}
 		$language = str_replace(array('\\','/'), '', getLanguageName());
@@ -1438,8 +1446,8 @@ class NP_CustomURL extends NucleusPlugin
 		sql_query(parseQuery(
             "UPDATE [@prefix@]plug_customurl SET obj_bid=[@blog_id@] WHERE obj_param='item' AND obj_id=[@item_id@]"
             , array(
-                'blog_id'=>(int)$data['destblogid']
-                ,'item_id'  =>(int)$data['itemid']
+                'blog_id'  =>(int)$data['destblogid']
+                ,'item_id' =>(int)$data['itemid']
             )
         ));
 	}
@@ -1448,16 +1456,17 @@ class NP_CustomURL extends NucleusPlugin
 	{
 	    $ph = array();
 		$ph['blog_id'] = (int)$data['destblog']->blogid;
-		$ph['cat_id']     = (int)$data['catid'];
+		$ph['cat_id']  = (int)$data['catid'];
 
 		sql_query(parseQuery(
             "UPDATE [@prefix@]plug_customurl SET obj_bid=[@blog_id@] WHERE obj_param='category' AND obj_id=[@cat_id@]"
-            , $ph)
+            , $ph
+            )
         );
 
 		$items = sql_query(parseQuery(
-		        'SELECT inumber FROM [@prefix@]item WHERE icat=[@cat_id@]'
-                ,$ph
+            'SELECT inumber FROM [@prefix@]item WHERE icat=[@cat_id@]'
+            ,$ph
             )
         );
 		while ($oItem = sql_fetch_object($items)) {
@@ -1542,7 +1551,8 @@ class NP_CustomURL extends NucleusPlugin
 
 	public function event_PostUpdatePlugin()
 	{
-		if ( !method_exists( 'NucleusPlugin' , 'existOptionDesc' ) )  // method_exists , PHP do not search parent functions
+        // method_exists , PHP do not search parent functions
+		if ( !method_exists( 'NucleusPlugin' , 'existOptionDesc' ) )
         {
             return;
         }
@@ -1734,9 +1744,11 @@ class NP_CustomURL extends NucleusPlugin
 	private function pluginCheck($pluginName)
 	{
 		global $manager;
+
 		if (!$manager->pluginInstalled('NP_' . $pluginName)) {
 			return false;
 		}
+
 		$plugin =& $manager->getPlugin('NP_' . $pluginName);
 		return $plugin;
 	}
@@ -1750,7 +1762,7 @@ class NP_CustomURL extends NucleusPlugin
 			header('Location: ' . $CONF['DisableSiteURL']);
 			exit;
 		}
-		$extraParams = explode("/", serverVar('PATH_INFO'));
+		$extraParams = explode('/', serverVar('PATH_INFO'));
 		array_shift ($extraParams);
 
 		if (isset($extraParams[1]) && preg_match("/^([1-9]+[0-9]*)(\?.*)?$/", $extraParams[1], $matches)) {
@@ -1818,31 +1830,47 @@ class NP_CustomURL extends NucleusPlugin
 		$eachPath  = array();
 		foreach ($subcatids as $sid) {
 			$subcat_id = (int)$sid;
-			$query = "SELECT obj_name as result FROM %s WHERE obj_id = %d AND obj_param='%s'";
-			$query     = sprintf($query, _CUSTOMURL_TABLE, $subcat_id, 'subcategory');
-			$path      = quickQuery($query);
+			$ph = array('subcat_id'=>$subcat_id);
+			$path = parseQuickQuery(
+                "SELECT obj_name as result
+                  FROM [@prefix@]plug_customurl
+                  WHERE obj_id=[@subcat_id@] AND obj_param='subcategory'"
+                , $ph
+            );
+
 			if ($path) {
 				$eachPath[] = $path;
-			} else {
-				$tempParam = array(
-								   'plug_multiple_categories_sub',
-								   'scatid',
-								   $subcat_id
-								  );
-				if (!$this->_isValid($tempParam)) {
-					return $url = _NOT_VALID_SUBCAT;
-				}
+				continue;
+			}
 
-                $scpath = $this->getOption('customurl_dfscat') . '_' . $subcat_id;
-                $query  = 'SELECT catid as result FROM %s WHERE scatid = %d';
-                $query  = sprintf($query, _C_SUBCAT_TABLE, $subcat_id);
-                $cid    = quickQuery($query);
-                if (!$cid) {
-                    return 'no_such_subcat=' . $subcat_id . '/';
-                }
-                $this->RegistPath($subcat_id, $scpath, $cid, 'subcategory', 'subcat_' . $subcat_id, true);
-                $eachPath[] = $scpath;
+            $param = array(
+                'plug_multiple_categories_sub',
+                'scatid',
+                $subcat_id
+            );
+            if (!$this->_isValid($param)) {
+                return $url = _NOT_VALID_SUBCAT;
             }
+
+            $scpath = $this->getOption('customurl_dfscat') . '_' . $subcat_id;
+            $cid = parseQuickQuery(
+                'SELECT catid as result FROM [@prefix@]plug_multiple_categories_sub WHERE scatid=[@subcat_id@]'
+                , $ph
+            );
+
+            if (!$cid) {
+                return 'no_such_subcat=' . $subcat_id . '/';
+            }
+
+            $this->RegistPath(
+                    $subcat_id
+                    , $scpath
+                    , $cid
+                    , 'subcategory'
+                    , 'subcat_' . $subcat_id
+                    , true
+            );
+            $eachPath[] = $scpath;
 		}
 		$subcatPath = join('/', $eachPath);
 		return $subcatPath . '/';
@@ -1851,26 +1879,22 @@ class NP_CustomURL extends NucleusPlugin
 	private function getParents($subid)
 	{
 		$mcatPlugin  = $this->pluginCheck('MultipleCategories');
+
 		$mcatVarsion = $mcatPlugin->getVersion() * 100;
 		if ((int)$mcatVarsion < 40) {
 			return (int)$subid;
 		}
-		$subcat_id          = (int)$subid;
-		$query              = 'SELECT '
-							. 'scatid, '
-							. 'parentid '
-							. 'FROM %s '
-							. 'WHERE scatid = %d';
-		$query              = sprintf($query, _C_SUBCAT_TABLE, $subcat_id);
-		$res                = sql_query($query);
+
+		$query = 'SELECT scatid, parentid FROM [@prefix@]plug_multiple_categories_sub WHERE scatid=[@subcat_id@]';
+		$res = sql_query(parseQuery($query), array('subcat_id'=>(int)$subid));
 		list($sid, $parent) = sql_fetch_row($res);
+
 		if ($parent != 0) {
-			$r = $this->getParents($parent) . '/' . $sid;
-		} else {
-			$r = $sid;
+            return $this->getParents($parent) . '/' . $sid;
 		}
-		return $r;
-	}
+
+        return $sid;
+    }
 
 	private function _generateCategoryLink($cid)
 	{
@@ -1880,19 +1904,23 @@ class NP_CustomURL extends NucleusPlugin
 			return $path . '/';
 		}
 
-        $catData = array(
-                         'category',
-                         'catid',
-                         $cat_id
-                        );
-        if (!$this->_isValid($catData)) {
+        if (!$this->_isValid(array(
+            'category',
+            'catid',
+            $cat_id
+        ))) {
             return $url = _NOT_VALID_CAT;
         }
 
         $cpath   = $this->getOption('customurl_dfcat') . '_' . $cat_id;
-        $blog_id = (int)getBlogIDFromCatID($cat_id);
-        $catname = 'catid_' . $cat_id;
-        $this->RegistPath($cat_id, $cpath, $blog_id, 'category', $catname, true);
+        $this->RegistPath(
+            $cat_id
+            , $cpath
+            , (int)getBlogIDFromCatID($cat_id)
+            , 'category'
+            , 'catid_' . $cat_id
+            , true
+        );
         return $cpath . '/';
     }
 
@@ -1908,12 +1936,11 @@ class NP_CustomURL extends NucleusPlugin
 		}
 		
 		$blog_id = (int)$bid;
-		$param   = array(
-						 'blog',
-						 'bnumber',
-						 $blog_id
-						);
-		if (!$this->_isValid($param)) {
+		if (!$this->_isValid(array(
+            'blog',
+            'bnumber',
+            $blog_id
+        ))) {
 			return _NOT_VALID_BLOG;
 		}
 		$b    =& $manager->getBlog($blog_id);
@@ -1934,9 +1961,10 @@ class NP_CustomURL extends NucleusPlugin
 					if ($path) {
 						$burl = rtrim($CONF['IndexURL'],'/').'/' . $path.'/';
 					} else {
-						$query = 'SELECT bshortname as result FROM [@prefix@]blog WHERE bnumber = [@bnumber@]';
-						$query = parseQuery($query, array('bnumber'=>$blog_id));
-						$bpath = quickQuery($query);
+						$bpath = parseQuickQuery(
+                            'SELECT bshortname as result FROM [@prefix@]blog WHERE bnumber=[@bnumber@]'
+                            , array('bnumber'=>$blog_id)
+                        );
 						$this->RegistPath($blog_id, $bpath, 0, 'blog', $bpath, true);
 						$burl  = rtrim($CONF['IndexURL'],'/').'/' . $bpath . '/';
 					}
@@ -2126,24 +2154,19 @@ class NP_CustomURL extends NucleusPlugin
 
 	private function _isValid($data)
 	{
-		$query   = 'SELECT count(*) AS result FROM %s WHERE %s = %d';
-		$data[2] = $this->quote_smart($data[2]);
-		$query   = sprintf($query, sql_table($data[0]), $data[1], $data[2]);
-		$ct      = (int)quickQuery($query);
-		return ($ct != 0);
+		return (int)parseQuickQuery(
+            "SELECT count(*) AS result FROM [@prefix@][@table_name@] WHERE [@k@]='[@v@]'"
+            , array('table_name'=>$data[0], 'k'=>$data[1], 'v'=>$data[2]));
 	}
 
 	private function _genarateObjectLink($data, $scatFlag = '')
 	{
-		global $CONF, $manager, $blog;
-		$ext = substr(serverVar('REQUEST_URI'), -4);
-		if ( in_array($ext,array('.rdf','.xml')) ) {
-			$CONF['URLMode']  = 'pathinfo';
-		}
+		global $CONF;
+
 		if ($CONF['URLMode'] !== 'pathinfo') {
 			return;
 		}
-		$query = "SELECT %s as result FROM %s WHERE %s = '%s'";
+
 		switch ($data[0]) {
 			case 'b':
 				if ($data[2] === 'n') {
@@ -2162,7 +2185,7 @@ class NP_CustomURL extends NucleusPlugin
 				} else {
 					$url = $this->_generateBlogLink($blog_id) . '/';
 				}
-			break;
+			    break;
 			case 'c':
 				if ($data[2] === 'n') {
 					$cid = getCatIDFromName($data[1]);
@@ -2185,9 +2208,9 @@ class NP_CustomURL extends NucleusPlugin
 				$mcategories = $this->pluginCheck('MultipleCategories');
 				if ($mcategories) {
 					if ($data[2] === 'n') {
-						$temp = $this->quote_smart($data[1]);
-						$sque = sprintf($query, 'scatid', _C_SUBCAT_TABLE, 'sname', $temp);
-						$scid = quickQuery($sque);
+						$scid = parseQuickQuery(
+                            "SELECT scatid as result FROM [@plug_multiple_categories_sub@] WHERE sname='[@sname@]'"
+                            ,array('sname'=>$data[1]));
 					} else {
 						$scid = $data[1];
 					}
@@ -2200,10 +2223,9 @@ class NP_CustomURL extends NucleusPlugin
 					if (!$this->_isValid($param)) {
 						$url = _NOT_VALID_SUBCAT;
 					} else {
-						$cqe        = sprintf($query, 'catid', _C_SUBCAT_TABLE, 'scatid', $sub_id);
-						$cid        = quickQuery($cqe);
-						$cid        = (int)$cid;
-						if (method_exists($mcategories, "getRequestName")) {
+						$cid = (int)parseQuickQuery("SELECT scatid as result FROM [@plug_multiple_categories_sub@] WHERE scatid='[@scatid@]'"
+                        ,array('scatid'=>$sub_id));
+						if (method_exists($mcategories, 'getRequestName')) {
 							$subrequest = $mcategories->getRequestName();
 						}
 						if (!$subrequest) {
@@ -2212,10 +2234,10 @@ class NP_CustomURL extends NucleusPlugin
 						$linkParam = array(
 										   $subrequest => $sub_id
 										  );
-						$url       = createCategoryLink($cid, $linkParam);
+						$url = createCategoryLink($cid, $linkParam);
 					}
 				}
-			break;
+			    break;
 			case 'i':
 				$param = array(
 							   'item',
@@ -2224,8 +2246,7 @@ class NP_CustomURL extends NucleusPlugin
 							  );
 				if (!$this->_isValid($param)) {
 					$url = _NOT_VALID_ITEM;
-				} else {
-					if ($scatFlag) {
+				} elseif ($scatFlag) {
 						global $catid, $subcatid;
 						if (!empty($catid)) {
 							$linkparams['catid'] = (int)$catid;
@@ -2242,35 +2263,32 @@ class NP_CustomURL extends NucleusPlugin
 							$linkparams[$subrequest] = (int)$subcatid;
 						}
 						$url = createItemLink((int)$data[1], $linkparams);
-					} else {
-						$blink = $this->_generateBlogLink(getBlogIDFromItemID((int)$data[1]));
-						$i_query = 'SELECT obj_name as result '
-								 . 'FROM %s '
-								 . 'WHERE obj_param = "item" '
-								 . 'AND      obj_id = %d';
-						$i_query = sprintf($i_query, _CUSTOMURL_TABLE, (int)$data[1]);
-						$path    = quickQuery($i_query);
-						if ($path) {
-							if ($data[2] === 'path') {
-								$url = $path;
-							} else {
-								$url = $blink . '/' . $path;
-							}
-						} else {
-							if ($data[2] === 'path') {
-								$url = $CONF['ItemKey'] . '/'
-									 . (int)$data[1];
-							} else {
-								$url = $blink . '/' . $CONF['ItemKey'] . '/'
-									 . (int)$data[1];
-							}
-						}
+                } else {
+                    $path = parseQuickQuery(
+                            "SELECT obj_name as result FROM [@prefix@]plug_customurl WHERE obj_param='item' AND obj_id=[@item_id@]"
+                            , array('item_id'=>(int)$data[1]));
+                    $blink = $this->_generateBlogLink(getBlogIDFromItemID((int)$data[1]));
+                    if ($path) {
+                        if ($data[2] === 'path') {
+                            $url = $path;
+                        } else {
+                            $url = $blink . '/' . $path;
+                        }
+                    } else {
+                        if ($data[2] === 'path') {
+                            $url = $CONF['ItemKey'] . '/'
+                                 . (int)$data[1];
+                        } else {
+                            $url = $blink . '/' . $CONF['ItemKey'] . '/'
+                                 . (int)$data[1];
+                        }
 					}
 				}
-			break;
+			    break;
 			case 'm':
 				if ($data[2] === 'n') {
 					$data[1] = $this->quote_smart($data[1]);
+                    $query = "SELECT %s as result FROM %s WHERE %s = '%s'";
 					$mque    = sprintf($query, 'mnumber', sql_table('member'), 'mname', $data[1]);
 					$mid     = quickQuery($mque);
 				} else {
@@ -2287,7 +2305,7 @@ class NP_CustomURL extends NucleusPlugin
 				} else {
 					$url = createMemberLink($member_id);
 				}
-			break;
+			    break;
 		}
 		return $url;
 	}
@@ -2313,11 +2331,11 @@ class NP_CustomURL extends NucleusPlugin
 		global $CONF;
 		if ($item_id) {
 			$query   = 'SELECT obj_name as result'
-				     . ' FROM         %s'
+				     . ' FROM [@prefix@]plug_customurl'
 				     . ' WHERE obj_param = "item"'
-				     . ' AND      obj_id = %d';
+				     . ' AND      obj_id = [@item_id@]';
 			$item_id = (int)$item_id;
-			$res     = quickQuery(sprintf($query, _CUSTOMURL_TABLE, $item_id));
+			$res     = parseQuickQuery($query, array( 'item_id'=>$item_id));
 			$ipath   = substr($res, 0, (strlen($res)-5));
 		} else {
 			$ipath   = $this->getOption('customurl_dfitem');
