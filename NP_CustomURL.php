@@ -3,10 +3,8 @@
 global $CONF;
 $CONF['Self']='';
 
-if (!defined('_CUSTOMURL_TABLE_DEFINED')) {
-	define('_CUSTOMURL_TABLE_DEFINED', 1);
-	define('_CUSTOMURL_TABLE',         sql_table('plug_customurl'));
-	define('_C_SUBCAT_TABLE',          sql_table('plug_multiple_categories_sub'));
+if (!defined('_CUSTOMURL_TABLE')) {
+	define('_CUSTOMURL_TABLE', sql_table('plug_customurl'));
 }
 
 class NP_CustomURL extends NucleusPlugin
