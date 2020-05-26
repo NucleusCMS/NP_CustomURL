@@ -67,8 +67,7 @@ class NP_CustomURL extends NucleusPlugin
         $plugin_path = $this->getDirectory();
         if (!is_file(sprintf("%slanguage/%s.php", $plugin_path, $language))) {
             include_once sprintf("%slanguage/%s.php", $plugin_path, $language);
-        }
-        else {
+        } else {
             include_once sprintf('%slanguage/english.php', $plugin_path);
         }
     }
@@ -93,8 +92,11 @@ class NP_CustomURL extends NucleusPlugin
                     );
                 }
             } else {
-                $uri = $CONF['ActionURL']
-                    . '?action=plugin&amp;name=TrackBack&amp;tb_id=' . $itemid;
+                $uri = sprintf(
+                    '%s?action=plugin&amp;name=TrackBack&amp;tb_id=%s'
+                    , $CONF['ActionURL']
+                    , $itemid
+                );
             }
             echo $uri;
             return;
@@ -1783,10 +1785,11 @@ class NP_CustomURL extends NucleusPlugin
         $data['bid']       = sql_real_escape_string($linkObj['bid']);
         $data['linkparam'] = sql_real_escape_string($linkObj['linkparam']);
 
-        if (!$ObjID = quickQuery(parseQuery(
-                "SELECT obj_id as result FROM [@prefix@]plug_customurl WHERE obj_name='[@name@]' AND obj_bid='[@bid@]' AND obj_param='[@linkparam@]'"
-                , $data
-        ))) {
+        $ObjID = quickQuery(parseQuery(
+            "SELECT obj_id as result FROM [@prefix@]plug_customurl WHERE obj_name='[@name@]' AND obj_bid='[@bid@]' AND obj_param='[@linkparam@]'"
+            , $data
+        ));
+        if (!$ObjID) {
             return false;
         }
 
