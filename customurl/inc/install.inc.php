@@ -37,7 +37,7 @@ if (empty($CONF['CategoryKey'])) {
 //Plugins sort
 $plugTable = sql_table('plugin');
 $myorder   = intval(parseQuickQuery('SELECT porder as result FROM [@prefix@]plugin WHERE pid=[@pid@]', array('pid'=>$this->getID())));
-$minorder  = intval(quickQuery('SELECT porder as result FROM [@prefix@]plugin ORDER BY porder ASC LIMIT 1'));
+$minorder  = intval(parseQuickQuery('SELECT porder as result FROM [@prefix@]plugin ORDER BY porder ASC LIMIT 1'));
 if ($myorder != $minorder || $myorder >1)
 {
 	if ($minorder <= 1)
