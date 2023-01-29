@@ -108,22 +108,26 @@ class NP_CustomURL extends NucleusPlugin
                 , $target
                 , $title
             ));
-        } else {
-            if (substr_count($link_type,'/') == 1) {
-                $link_params = array(0, sprintf(
-                    'b/%d/i,%s,%s'
-                    , (int)$link_type
-                    , $target, $title
-                ));
-            } else {
-                $link_params = array(0, sprintf(
-                    '%s,%s,%s'
-                    , $link_type
-                    , $target
-                    , $title
-                ));
-            }
+            echo $this->URL_Callback($link_params);
+            return;
         }
+
+        if (substr_count($link_type, '/') != 1) {
+            $link_params = array(0, sprintf(
+                '%s,%s,%s'
+                , $link_type
+                , $target
+                , $title
+            ));
+            echo $this->URL_Callback($link_params);
+            return;
+        }
+
+        $link_params = array(0, sprintf(
+            'b/%d/i,%s,%s'
+            , (int)$link_type
+            , $target, $title
+        ));
         echo $this->URL_Callback($link_params);
     }
 
@@ -134,26 +138,25 @@ class NP_CustomURL extends NucleusPlugin
         }
         $item_id = (int)$item->itemid;
         if (!$link_type || $link_type === 'subcategory') {
-            $link_params = array(0, sprintf(
-                'i/%d/i,%s,%s'
-                , $item_id
-                , $target
-                , $title
-            ));
+            $link_params = array(
+                0,
+                sprintf('i/%d/i,%s,%s' , $item_id , $target , $title)
+            );
         } elseif ($link_type === 'path') {
-            $link_params = array(0, sprintf(
-                'i/%d/path,%s,%s'
-                , $item_id
-                , $target
-                , $title
-            ));
+            $link_params = array(
+                0,
+                sprintf(
+                    'i/%d/path,%s,%s'
+                    , $item_id
+                    , $target
+                    , $title
+                )
+            );
         } else {
-            $link_params = array(0, sprintf(
-                '%s,%s,%s'
-                , $link_type
-                , $target
-                , $title
-            ));
+            $link_params = array(
+                0,
+                sprintf('%s,%s,%s' , $link_type , $target , $title)
+            );
         }
 
         if ($link_type === 'subcategory') {
