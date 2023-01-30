@@ -799,11 +799,9 @@ class NP_CustomURL extends NucleusPlugin
                 $uri = createCategoryLink($catid, $linkParam);
             } elseif (count($v_path) >= 2 && (!isset($subcatid)||!$subcatid) && !$iLink) {
                 $notFound = true;
-                if (isset($catid)) {
-                    $uri = createCategoryLink($catid);
-                } else {
-                    $uri = createBlogidLink($blogid);
-                }
+                $uri = isset($catid)
+                    ? createCategoryLink($catid)
+                    : createBlogidLink($blogid);
             } elseif (reset($v_path) && !$catid && (!isset($subcatid) || !$subcatid) && !$iLink) {
                 $notFound = true;
                 $uri = createBlogidLink($blogid);
@@ -854,11 +852,9 @@ class NP_CustomURL extends NucleusPlugin
         $ref_data =& $data;
         unset($data);
         $data = array_merge($ref_data); // copy data to avoid contamination of the variable
-        if (is_numeric($blogid)) {
-            $blogid = (int)$blogid;
-        } else {
-            $blogid = (int)getBlogIDFromName($blogid);
-        }
+        $blogid = is_numeric($blogid)
+            ? (int)$blogid
+            : (int)getBlogIDFromName($blogid);
         $mcategories = $this->pluginCheck('MultipleCategories');
         if ($mcategories) {
             if (method_exists($mcategories, 'getRequestName')) {
@@ -883,37 +879,40 @@ class NP_CustomURL extends NucleusPlugin
                     return;
                 }
                 $item_id = (int)$params['itemid'];
-                if ($item_id) {
-                    $bid     = (int)getBlogIDFromItemID($item_id);
+                if (!$item_id) {
+                    $objPath = '';
+                } else {
+                    $bid = (int)getBlogIDFromItemID($item_id);
                     if ($useCustomURL[$bid] === 'no') {
                         return;
                     }
-                    $path  = quickQuery(sprintf(
-                            "SELECT obj_name as result FROM %s WHERE obj_param='item' AND obj_id=%d"
-                            , sql_table('plug_customurl')
-                            , $item_id));
+                    $path = quickQuery(sprintf(
+                        "SELECT obj_name as result FROM %s WHERE obj_param='item' AND obj_id=%d"
+                        , sql_table('plug_customurl')
+                        , $item_id));
                     if ($path) {
                         $objPath = $path;
                     } else {
                         if (!$this->_isValid(array('item', 'inumber', $item_id))) {
                             $objPath = _NOT_VALID_ITEM;
                         } else {
-                            $y = $m = $d = $temp = '';$itime = quickQuery(sprintf(
-                                    'SELECT itime as result FROM %s WHERE inumber=%d'
-                                    ,sql_table('item')
-                                    , $item_id
+                            $y = $m = $d = $temp = '';
+                            $itime = quickQuery(sprintf(
+                                'SELECT itime as result FROM %s WHERE inumber=%d'
+                                , sql_table('item')
+                                , $item_id
                             ));
-                            sscanf($itime,'%d-%d-%d %s', $y, $m, $d, $temp);
-                            $defItem   = $this->getOption('customurl_dfitem');
+                            sscanf($itime, '%d-%d-%d %s', $y, $m, $d, $temp);
+                            $defItem = $this->getOption('customurl_dfitem');
                             $tempParam = array(
-                                'year'  => $y,
+                                'year' => $y,
                                 'month' => $m,
-                                'day'   => $d
+                                'day' => $d
                             );
                             $ipath = sprintf(
-                                    '%s_%d'
-                                    , TEMPLATE::fill($defItem, $tempParam)
-                                    , $item_id
+                                '%s_%d'
+                                , TEMPLATE::fill($defItem, $tempParam)
+                                , $item_id
                             );
                             $iname = quickQuery(sprintf(
                                 'SELECT ititle as result FROM %s WHERE inumber=%d'
@@ -929,8 +928,6 @@ class NP_CustomURL extends NucleusPlugin
                     } else {
                         $burl = $this->_generateBlogLink($blogid);
                     }
-                } else {
-                    $objPath = '';
                 }
                 break;
             case 'member':
@@ -938,42 +935,42 @@ class NP_CustomURL extends NucleusPlugin
                     return;
                 }
                 $memberID = (int)$params['memberid'];
-                if ($memberID) {
+                if (!$memberID) {
+                    $objPath = '';
+                } else {
                     $path = $this->getMemberOption($memberID, 'customurl_mname');
-                    if ($path) {
-                        $data['url'] = $this->_generateBlogLink($blogid) . '/'
-                            . $OP_MemberKey . '/' . $path . '.html';
-                        $data['completed'] = true;
-                        $ref_data = array_merge($data);
-                        return;
-                    } else {
+                    if (!$path) {
                         if (!$this->_isValid(array('member', 'mnumber', $memberID))) {
                             $data['url'] = $this->_generateBlogLink($blogid) . '/'
                                 . _NOT_VALID_MEMBER;
                             $data['completed'] = true;
                             $ref_data = array_merge($data);
                             return;
-                        } else {
-                            $table = sql_table('member');
-                            $mname = quickQuery(sprintf(
-                                    'SELECT mname as result FROM %s WHERE mnumber=%d'
-                                    , $table
-                                    , $memberID
-                            ));
-                            $this->RegistPath($memberID, $mname, 0, 'member', $mname, true);
-                            $data['url'] = sprintf(
-                                    '%s/%s/%s.html'
-                                    , $mname
-                                , $this->_generateBlogLink($blogid)
-                                , $OP_MemberKey
-                            );
-                            $data['completed'] = true;
-                            $ref_data = array_merge($data);
-                            return;
                         }
+
+                        $table = sql_table('member');
+                        $mname = quickQuery(sprintf(
+                            'SELECT mname as result FROM %s WHERE mnumber=%d'
+                            , $table
+                            , $memberID
+                        ));
+                        $this->RegistPath($memberID, $mname, 0, 'member', $mname, true);
+                        $data['url'] = sprintf(
+                            '%s/%s/%s.html'
+                            , $mname
+                            , $this->_generateBlogLink($blogid)
+                            , $OP_MemberKey
+                        );
+                        $data['completed'] = true;
+                        $ref_data = array_merge($data);
+                        return;
                     }
-                } else {
-                    $objPath = '';
+
+                    $data['url'] = $this->_generateBlogLink($blogid) . '/'
+                        . $OP_MemberKey . '/' . $path . '.html';
+                    $data['completed'] = true;
+                    $ref_data = array_merge($data);
+                    return;
                 }
                 break;
             case 'category':
