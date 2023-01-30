@@ -65,7 +65,7 @@ class NP_CustomURL extends NucleusPlugin
         }
         $language = str_replace(array('\\','/'), '', getLanguageName());
         $plugin_path = $this->getDirectory();
-        if (!is_file(sprintf("%slanguage/%s.php", $plugin_path, $language))) {
+        if (is_file(sprintf("%slanguage/%s.php", $plugin_path, $language))) {
             include_once sprintf("%slanguage/%s.php", $plugin_path, $language);
         } else {
             include_once sprintf('%slanguage/english.php', $plugin_path);
