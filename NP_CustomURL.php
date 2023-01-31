@@ -1032,14 +1032,12 @@ class NP_CustomURL extends NucleusPlugin
 
         $tempdeb = debug_backtrace();
         $denyPlugin = false;
-        foreach($tempdeb as $k => $v){
-            if (array_key_exists('class', $v)) {
-                $analyzePlugin = (strtolower($v['class']) === 'np_analyze');
-                $sitemapPlugin = (strtolower($v['class']) === 'np_googlesitemap' ||
-                    strtolower($v['class']) === 'np_seositemaps');
-                if ($analyzePlugin || $sitemapPlugin) {
-                    $denyPlugin = true;
-                }
+        foreach($tempdeb as $v){
+            if (empty($v['class'])) {
+                continue;
+            }
+            if (in_array(strtolower($v['class']), ['np_analyze', 'np_googlesitemap', 'np_seositemaps'])) {
+                $denyPlugin = true;
             }
         }
 
@@ -1076,8 +1074,9 @@ class NP_CustomURL extends NucleusPlugin
             $data['url'] = $this->_generateBlogLink($blogid) . '/';
             $data['completed'] = true;
         }
-        if ($data['completed'])
+        if ($data['completed']) {
             $ref_data = array_merge($data);
+        }
     }
 
     public function event_InitSkinParse($data)
@@ -1593,7 +1592,6 @@ class NP_CustomURL extends NucleusPlugin
         $CONF['ArchiveURL']     = $blogurl;
         $CONF['ArchiveListURL'] = $blogurl;
         $CONF['SearchURL']      = $blogurl;
-//		$CONF['MemberURL']      = $blogurl;
     }
 
     public function event_QuickMenu(&$data)
@@ -1641,19 +1639,21 @@ class NP_CustomURL extends NucleusPlugin
 
     public function _createNewPath($type, $n_table, $id, $bids)
     {
-        sql_query(parseQuery(
-                "CREATE TABLE [@prefix@]plug_customurl_temp SELECT obj_id, obj_param FROM [@prefix@]plug_customurl WHERE obj_param='[@type@]'"
-                , array('type'=>$type))
+        sql_query(
+                parseQuery(
+                "CREATE TABLE [@prefix@]plug_customurl_temp SELECT obj_id, obj_param FROM [@prefix@]plug_customurl WHERE obj_param='[@type@]'",
+                array('type'=>$type)
+                )
         );
         $table = sql_table($n_table);
         $TmpQuery = sprintf(
-            'SELECT %s, %s FROM %s as ttb LEFT JOIN %s as tcu ON ttb.%s=tcu.obj_id WHERE tcu.obj_id is null'
-            , $id
-            , $bids
-            , $table
-            , sql_table('plug_customurl_temp')
-            , $id
-        );
+                'SELECT %s, %s FROM %s as ttb LEFT JOIN %s as tcu ON ttb.%s=tcu.obj_id WHERE tcu.obj_id is null',
+                $id,
+                $bids,
+                $table,
+                sql_table('plug_customurl_temp'),
+                $id
+            );
         $temp = sql_query($TmpQuery);
         if ($temp) {
             while ($row = sql_fetch_array($temp)) {
