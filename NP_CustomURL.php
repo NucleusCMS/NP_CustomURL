@@ -1733,17 +1733,17 @@ class NP_CustomURL extends NucleusPlugin
                     break;
                 case 'member':
                     $this->setMemberOption(
-                        $id
-                        , 'customurl_mname'
-                        , substr($row['obj_name'], 0, -5)
+                        $id,
+                        'customurl_mname',
+                        substr($row['obj_name'], 0, -5)
                     );
                     break;
             }
         }
 
         sql_query(sprintf(
-                'DROP TABLE IF EXISTS %s'
-                , sql_table('plug_customurl_temp')
+            'DROP TABLE IF EXISTS %s',
+            sql_table('plug_customurl_temp')
         ));
     }
 
@@ -1769,7 +1769,7 @@ class NP_CustomURL extends NucleusPlugin
         $extraParams = explode("/", serverVar('PATH_INFO'));
         array_shift ($extraParams);
 
-        if (isset($extraParams[1]) && preg_match("/^([1-9]+[0-9]*)(\?.*)?$/", $extraParams[1], $matches)) {
+        if (isset($extraParams[1]) && preg_match("/^([1-9]+\d*)(\?.*)?$/", $extraParams[1], $matches)) {
             $extraParams[1] = $matches[1];
         }
 
